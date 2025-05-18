@@ -5,6 +5,9 @@
     <projectFile profileName="http">RegisterSystemApi/RegisterSystemApi.csproj</projectFile>
     <projectFile profileName="https">RegisterSystemApi/RegisterSystemApi.csproj</projectFile>
   </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="b0147f21-d437-4da1-ab66-1e6558ca25d1" name="Changes" comment="ignore" />
     <option name="SHOW_DIALOG" value="false" />
