@@ -2,8 +2,11 @@
 
 public class AppointmentRequest
 {
-    public int UserId { get; set; }
+    public string Name { get; set; }
+    public string Surname { get; set; }
+    public string Email { get; set; }
+    public string PhoneNumber { get; set; }
 
-    public int DoctorBlockId { get; set; }
+    public ICollection<int> DoctorBlockId { get; set; }
     public ServiceRequest Service { get; set; }
 }

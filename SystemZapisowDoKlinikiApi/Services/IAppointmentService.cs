@@ -4,5 +4,6 @@ namespace SystemZapisowDoKlinikiApi.Services;
 
 public interface IAppointmentService
 {
-    public Task CreateAppointmentAsync(AppointmentRequest appointmentRequest);
+    public Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest);
+    public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang);
 }

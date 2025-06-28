@@ -102,7 +102,7 @@ public class AuthenticationController : ControllerBase
         });
     }
     
-    [Authorize]
+    [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequest model)
     {

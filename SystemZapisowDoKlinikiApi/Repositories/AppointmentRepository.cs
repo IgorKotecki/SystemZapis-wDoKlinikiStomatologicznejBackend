@@ -17,25 +17,29 @@ public class AppointmentRepository : IAppointmentRepository
         _serviceRepository = serviceRepository;
     }
 
-    public async Task CreateAppointmentAsync(AppointmentRequest appointmentRequest, string role)
+    public async Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest, int userId)
     {
         await using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var appointment = new Appointment
+            foreach (var doctorBlock in appointmentRequest.DoctorBlockId)
             {
-                DoctorBlockId = appointmentRequest.DoctorBlockId,
-                UserId = appointmentRequest.UserId,
-            };
-            var service = await _serviceRepository.GetServiceByIdAsync(appointmentRequest.Service.Id);
-            if (service == null)
-            {
-                throw new ArgumentException("Service not found.");
+                var appointment = new Appointment
+                {
+                    DoctorBlockId = doctorBlock,
+                    UserId = userId,
+                    Services = new List<Service>()
+                };
+                var service = await _serviceRepository.GetServiceByIdAsync(appointmentRequest.Service.Id);
+                if (service == null)
+                {
+                    throw new ArgumentException("Service not found.");
+                }
+
+                appointment.Services.Add(service);
+                _context.Appointments.Add(appointment);
             }
 
-            appointment.Services.Add(service);
-            
-            _context.Appointments.Add(appointment);
             await _context.SaveChangesAsync();
 
             await transaction.CommitAsync();
@@ -54,8 +58,21 @@ public class AppointmentRepository : IAppointmentRepository
             .Select(a => new AppointmentDto
             {
                 Id = a.Id,
-                DoctorBlockId = a.DoctorBlockId,
-                UserId = a.UserId,
+                DoctorBlock = new TimeBlockDto()
+                {
+                    DoctorBlockId = a.DoctorBlockId,
+                    isAvailable = false,
+                    TimeStart = a.DoctorBlock.TimeBlock.TimeStart,
+                    TimeEnd = a.DoctorBlock.TimeBlock.TimeEnd,
+                    UserId = a.DoctorBlock.DoctorUserId
+                },
+                User = new UserDTO()
+                {
+                    Name = a.User.Name,
+                    Surname = a.User.Surname,
+                    Email = a.User.Email,
+                    PhoneNumber = a.User.PhoneNumber,
+                },
                 Services = a.Services.Select(s => new ServiceDTO
                 {
                     Id = s.Id,

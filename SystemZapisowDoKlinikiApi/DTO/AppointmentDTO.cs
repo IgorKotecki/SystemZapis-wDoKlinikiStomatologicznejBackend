@@ -4,8 +4,8 @@ public class AppointmentDto
 {
     public int Id { get; set; }
 
-    public int UserId { get; set; }
+    public UserDTO User { get; set; }
 
-    public int DoctorBlockId { get; set; }
+    public TimeBlockDto DoctorBlock { get; set; }
     public ICollection<ServiceDTO> Services { get; set; }
 }

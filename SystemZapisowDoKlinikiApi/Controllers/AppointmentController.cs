@@ -14,19 +14,35 @@ public class AppointmentController : ControllerBase
     {
         _appointmentService = appointmentService;
     }
-    
-    [HttpPost]
-    public async Task<IActionResult> PostAppointment([FromBody] AppointmentRequest appointmentRequest)
-    {
-        if (appointmentRequest == null)
-        {
-            return BadRequest("Invalid appointment request.");
-        }
 
+    [HttpPost]
+    [Route("guest")]
+    public async Task<IActionResult> PostGuestAppointment([FromBody] AppointmentRequest appointmentRequest)
+    {
         try
         {
-            await _appointmentService.CreateAppointmentAsync(appointmentRequest);
-            return CreatedAtAction(nameof(PostAppointment), appointmentRequest);
+            await _appointmentService.CreateAppointmentGuestAsync(appointmentRequest);
+            return CreatedAtAction(nameof(PostGuestAppointment), appointmentRequest);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
+        }
+    }
+
+    [HttpGet]
+    [Route("user/{userId}")]
+    public async Task<IActionResult> GetAppointmentsByUserId(int userId, [FromQuery] string lang)
+    {
+        try
+        {
+            var appointments = await _appointmentService.GetAppointmentsByUserIdAsync(userId, lang);
+            if (!appointments.Any())
+            {
+                return NotFound("No appointments found for the specified user.");
+            }
+
+            return Ok(appointments);
         }
         catch (Exception ex)
         {
