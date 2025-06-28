@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.Models;
+using SystemZapisowDoKlinikiApi.Repositories;
+using SystemZapisowDoKlinikiApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+// Repositories
+builder.Services.AddScoped<ITimeBlockRepository, TimeBlockRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+
+// Services
+builder.Services.AddScoped<ITimeBlockService, TimeBlockService>();
+builder.Services.AddScoped<IServiceService, ServiceService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddDbContext<ClinicDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));

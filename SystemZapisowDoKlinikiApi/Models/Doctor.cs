@@ -9,7 +9,7 @@ public partial class Doctor
 
     public string Specialization { get; set; } = null!;
 
-    public string ImgPath { get; set; } = null!;
+    public string? ImgPath { get; set; }
 
     public virtual ICollection<DaySchemeTimeBlock> DaySchemeTimeBlocks { get; set; } = new List<DaySchemeTimeBlock>();
 

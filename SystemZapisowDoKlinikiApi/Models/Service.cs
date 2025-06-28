@@ -13,7 +13,13 @@ public partial class Service
 
     public int MinTime { get; set; }
 
+    public virtual ICollection<ServiceDependency> ServiceDependencyRequiredServices { get; set; } = new List<ServiceDependency>();
+
+    public virtual ICollection<ServiceDependency> ServiceDependencyServices { get; set; } = new List<ServiceDependency>();
+
     public virtual ICollection<ServicesTranslation> ServicesTranslations { get; set; } = new List<ServicesTranslation>();
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
+
+    public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
 }

@@ -17,11 +17,12 @@ public partial class User
 
     public int RolesId { get; set; }
 
-    public string Password { get; set; } = null!;
+    public string? Password { get; set; }
 
-    public string Salt { get; set; } = null!;
+    public string? Salt { get; set; }
 
-    public string RefreshToken { get; set; } = null!;
+    public string? RefreshToken { get; set; }
+
     public DateTime? RefreshTokenExpDate { get; set; }
 
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();

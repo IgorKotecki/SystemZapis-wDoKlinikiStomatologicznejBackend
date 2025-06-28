@@ -27,7 +27,9 @@ public partial class ClinicDbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<Service> Services { get; set; }
+    public virtual DbSet<Service?> Services { get; set; }
+
+    public virtual DbSet<ServiceDependency> ServiceDependencies { get; set; }
 
     public virtual DbSet<ServicesTranslation> ServicesTranslations { get; set; }
 
@@ -42,9 +44,8 @@ public partial class ClinicDbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https: //go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer(
-            "Server=dental-system-databse.cdwms2oqwpw7.eu-north-1.rds.amazonaws.com;Database=dental-system;User Id=admin;Password=haslo1234;TrustServerCertificate=True");
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=dental-system-databse.cdwms2oqwpw7.eu-north-1.rds.amazonaws.com;Database=dental-system;User Id=admin;Password=haslo1234;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -57,9 +58,13 @@ public partial class ClinicDbContext : DbContext
             entity.ToTable("Additional_information");
 
             entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Body)
+            entity.Property(e => e.BodyEn)
                 .HasMaxLength(1000)
-                .HasColumnName("body");
+                .HasDefaultValue("")
+                .HasColumnName("body_en");
+            entity.Property(e => e.BodyPl)
+                .HasMaxLength(1000)
+                .HasColumnName("body_pl");
         });
 
         modelBuilder.Entity<Appointment>(entity =>
@@ -187,6 +192,25 @@ public partial class ClinicDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .HasColumnName("name");
+
+            entity.HasMany(d => d.Services).WithMany(p => p.Roles)
+                .UsingEntity<Dictionary<string, object>>(
+                    "RoleServicePermission",
+                    r => r.HasOne<Service>().WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_Role_Service_Permissions_Service"),
+                    l => l.HasOne<Role>().WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .HasConstraintName("FK_Role_Service_Permissions_Role"),
+                    j =>
+                    {
+                        j.HasKey("RoleId", "ServiceId").HasName("PK__Role_Ser__95E9BE46E4746543");
+                        j.ToTable("Role_Service_Permissions");
+                        j.IndexerProperty<int>("RoleId").HasColumnName("role_id");
+                        j.IndexerProperty<int>("ServiceId").HasColumnName("service_id");
+                    });
         });
 
         modelBuilder.Entity<Service>(entity =>
@@ -201,6 +225,24 @@ public partial class ClinicDbContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("low_price");
             entity.Property(e => e.MinTime).HasColumnName("min_time");
+        });
+
+        modelBuilder.Entity<ServiceDependency>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__ServiceD__3213E83F4B64088B");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.RequiredServiceId).HasColumnName("required_service_id");
+            entity.Property(e => e.ServiceId).HasColumnName("service_id");
+
+            entity.HasOne(d => d.RequiredService).WithMany(p => p.ServiceDependencyRequiredServices)
+                .HasForeignKey(d => d.RequiredServiceId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_ServiceDependencies_RequiredService");
+
+            entity.HasOne(d => d.Service).WithMany(p => p.ServiceDependencyServices)
+                .HasForeignKey(d => d.ServiceId)
+                .HasConstraintName("FK_ServiceDependencies_Service");
         });
 
         modelBuilder.Entity<ServicesTranslation>(entity =>
