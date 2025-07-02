@@ -2,7 +2,7 @@
 
 public class TimeBlockDto
 {
-    public int UserId { get; set; }
+    public UserDTO User { get; set; }
 
     public int DoctorBlockId { get; set; }
 

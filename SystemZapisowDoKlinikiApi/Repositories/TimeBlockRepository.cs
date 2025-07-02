@@ -26,7 +26,14 @@ public class TimeBlockRepository : ITimeBlockRepository
                 DoctorBlockId = db.Id,
                 TimeStart = db.TimeBlock.TimeStart,
                 TimeEnd = db.TimeBlock.TimeEnd,
-                UserId = db.DoctorUserId,
+                User = new UserDTO()
+                {
+                    Id = db.DoctorUser.UserId,
+                    Name = db.DoctorUser.User.Name,
+                    Surname = db.DoctorUser.User.Surname,
+                    Email = db.DoctorUser.User.Email,
+                    PhoneNumber = db.DoctorUser.User.PhoneNumber
+                },
                 isAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id),
             })
             .ToListAsync();

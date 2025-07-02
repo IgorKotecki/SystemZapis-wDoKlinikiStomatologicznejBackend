@@ -64,7 +64,14 @@ public class AppointmentRepository : IAppointmentRepository
                     isAvailable = false,
                     TimeStart = a.DoctorBlock.TimeBlock.TimeStart,
                     TimeEnd = a.DoctorBlock.TimeBlock.TimeEnd,
-                    UserId = a.DoctorBlock.DoctorUserId
+                    User = new UserDTO()
+                    {
+                        Id = a.DoctorBlock.DoctorUser.UserId,
+                        Name = a.DoctorBlock.DoctorUser.User.Name,
+                        Surname = a.DoctorBlock.DoctorUser.User.Surname,
+                        Email = a.DoctorBlock.DoctorUser.User.Email,
+                        PhoneNumber = a.DoctorBlock.DoctorUser.User.PhoneNumber
+                    }
                 },
                 User = new UserDTO()
                 {
