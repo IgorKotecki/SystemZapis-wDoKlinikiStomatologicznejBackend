@@ -40,4 +40,23 @@ public class TimeBlockRepository : ITimeBlockRepository
 
         return doctorBlocks;
     }
+
+    public async Task<TimeBlockDto?> GetTimeBlockByDoctorBlockIdAsync(int id)
+    {
+        return await _context.DoctorBlocks.Where(db => db.Id == id).Select(db => new TimeBlockDto()
+        {
+            DoctorBlockId = db.Id,
+            TimeStart = db.TimeBlock.TimeStart,
+            TimeEnd = db.TimeBlock.TimeEnd,
+            User = new UserDTO()
+            {
+                Id = db.DoctorUser.UserId,
+                Name = db.DoctorUser.User.Name,
+                Surname = db.DoctorUser.User.Surname,
+                Email = db.DoctorUser.User.Email,
+                PhoneNumber = db.DoctorUser.User.PhoneNumber
+            },
+            isAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id)
+        }).FirstOrDefaultAsync();
+    }
 }

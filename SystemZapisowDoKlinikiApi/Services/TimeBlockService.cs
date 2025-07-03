@@ -16,4 +16,9 @@ public class TimeBlockService : ITimeBlockService
     {
         return await _timeBlockRepository.GetTimeBlocksAsync(date);
     }
+
+    public async Task<TimeBlockDto?> GetTimeBlockByDoctorBlockIdAsync(int id)
+    {
+        return await _timeBlockRepository.GetTimeBlockByDoctorBlockIdAsync(id);
+    }
 }

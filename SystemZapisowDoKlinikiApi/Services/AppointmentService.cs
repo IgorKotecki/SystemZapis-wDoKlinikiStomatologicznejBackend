@@ -9,11 +9,14 @@ public class AppointmentService : IAppointmentService
 {
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IUserService _userService;
+    private readonly ITimeBlockService _timeBlockService;
 
-    public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService)
+    public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
+        ITimeBlockService timeBlockService)
     {
         _appointmentRepository = appointmentRepository;
         _userService = userService;
+        _timeBlockService = timeBlockService;
     }
 
     public async Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest)
@@ -21,6 +24,22 @@ public class AppointmentService : IAppointmentService
         if (appointmentRequest == null)
         {
             throw new ArgumentNullException(nameof(appointmentRequest), "Appointment request cannot be null.");
+        }
+
+        foreach (var id in appointmentRequest.DoctorBlockId)
+        {
+            var timeBlock = await _timeBlockService.GetTimeBlockByDoctorBlockIdAsync(id);
+            if (timeBlock == null)
+            {
+                throw new ArgumentException($"Time block with ID {id} does not exist.",
+                    nameof(appointmentRequest.DoctorBlockId));
+            }
+
+            if (timeBlock.TimeStart < DateTime.Now)
+            {
+                throw new ArgumentException($"Time block with ID {id} is in the past.",
+                    nameof(appointmentRequest.DoctorBlockId));
+            }
         }
 
         var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
