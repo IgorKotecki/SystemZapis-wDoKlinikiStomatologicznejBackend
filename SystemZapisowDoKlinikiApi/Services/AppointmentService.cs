@@ -1,5 +1,6 @@
 ﻿using System.Security.Claims;
 using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 
 namespace SystemZapisowDoKlinikiApi.Services;
@@ -35,6 +36,7 @@ public class AppointmentService : IAppointmentService
         }
         else
         {
+            CheckUserDataForAppointment(appointmentRequest, user);
             userId = user.Id;
         }
 
@@ -49,5 +51,17 @@ public class AppointmentService : IAppointmentService
         }
 
         return _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang);
+    }
+
+    private void CheckUserDataForAppointment(AppointmentRequest appointmentRequest, User user)
+    {
+        if (user.Name != appointmentRequest.Name ||
+            user.Surname != appointmentRequest.Surname ||
+            user.Email != appointmentRequest.Email ||
+            user.PhoneNumber != appointmentRequest.PhoneNumber)
+        {
+            throw new ArgumentException("Data in appointment don't mach user with specified email.",
+                nameof(appointmentRequest));
+        }
     }
 }
