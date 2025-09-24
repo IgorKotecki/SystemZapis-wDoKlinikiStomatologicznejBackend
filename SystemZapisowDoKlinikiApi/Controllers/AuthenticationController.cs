@@ -48,7 +48,7 @@ public class AuthenticationController : ControllerBase
             Salt = hashedPasswordAndSalt.Item2,
             RefreshToken = SecurityHelper.GenerateRefreshToken(),
             RefreshTokenExpDate = DateTime.Now.AddDays(1),
-            RolesId = 1
+            RolesId = 3 // Default role: Registered_User
         };
 
         await _context.Users.AddAsync(user);
@@ -75,6 +75,7 @@ public class AuthenticationController : ControllerBase
 
         var claims = new[]
         {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Roles.Name)
         };
@@ -101,7 +102,7 @@ public class AuthenticationController : ControllerBase
             refreshToken = user.RefreshToken
         });
     }
-    
+
     [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshToken(RefreshTokenRequest model)
