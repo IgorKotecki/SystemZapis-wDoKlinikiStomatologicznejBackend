@@ -7,7 +7,8 @@ public partial class Doctor
 {
     public int UserId { get; set; }
 
-    public string Specialization { get; set; } = null!;
+    public string SpecializationPl { get; set; } = null!;
+    public string SpecializationEn { get; set; } = null!;
 
     public string? ImgPath { get; set; }
 

@@ -19,12 +19,16 @@ builder.Services.AddScoped<ITimeBlockRepository, TimeBlockRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IDoctorDaySchemeRepository, DoctorDaySchemeRepository>();
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
 // Services
 builder.Services.AddScoped<ITimeBlockService, TimeBlockService>();
 builder.Services.AddScoped<IServiceService, ServiceService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDoctorDaySchemeService, DoctorDaySchemeService>();
+builder.Services.AddScoped<IDoctorService, DoctorService>();
 
 builder.Services.AddHttpContextAccessor();
 

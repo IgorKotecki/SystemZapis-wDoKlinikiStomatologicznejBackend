@@ -150,9 +150,12 @@ public partial class ClinicDbContext : DbContext
             entity.Property(e => e.ImgPath)
                 .HasMaxLength(255)
                 .HasColumnName("img_path");
-            entity.Property(e => e.Specialization)
+            entity.Property(e => e.SpecializationPl)
                 .HasMaxLength(100)
-                .HasColumnName("specialization");
+                .HasColumnName("specialization_pl");
+            entity.Property(e => e.SpecializationEn)
+                .HasMaxLength(100)
+                .HasColumnName("specialization_en");
 
             entity.HasOne(d => d.User).WithOne(p => p.Doctor)
                 .HasForeignKey<Doctor>(d => d.UserId)

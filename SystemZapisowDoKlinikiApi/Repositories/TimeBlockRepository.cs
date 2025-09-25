@@ -57,6 +57,7 @@ public class TimeBlockRepository : ITimeBlockRepository
                 PhoneNumber = db.DoctorUser.User.PhoneNumber
             },
             isAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id)
+            //Troche ciezka operacja mozna od razu przy zapisywawniu wstawiac flage dostepnosci
         }).FirstOrDefaultAsync();
     }
 }
