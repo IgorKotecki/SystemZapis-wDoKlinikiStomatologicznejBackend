@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Services;
@@ -30,4 +31,22 @@ public class ServiceController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+    [HttpPost]
+    [Route("addService")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AddServiceAsync([FromBody] AddServiceDto addServiceDto)
+    {
+        try
+        {
+            await _serviceService.AddServiceAsync(addServiceDto);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return BadRequest(e.Message);
+        }
+    }
+    
+    
 }

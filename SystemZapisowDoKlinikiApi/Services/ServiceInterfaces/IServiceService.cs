@@ -5,4 +5,5 @@ namespace SystemZapisowDoKlinikiApi.Services;
 public interface IServiceService
 {
     public Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang);
+    public Task AddServiceAsync(AddServiceDto addServiceDto);
 }

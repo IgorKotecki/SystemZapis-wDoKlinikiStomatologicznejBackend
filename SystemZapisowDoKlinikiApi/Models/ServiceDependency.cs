@@ -9,9 +9,9 @@ public partial class ServiceDependency
 
     public int ServiceId { get; set; }
 
-    public int RequiredServiceId { get; set; }
+    public int? RequiredServiceId { get; set; }
 
-    public virtual Service RequiredService { get; set; } = null!;
+    public virtual Service? RequiredService { get; set; } = null!;
 
     public virtual Service Service { get; set; } = null!;
 }

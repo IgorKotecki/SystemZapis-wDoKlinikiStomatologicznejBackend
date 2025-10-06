@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 
@@ -19,7 +20,7 @@ public class ServiceRepository : IServiceRepository
     {
         Console.WriteLine($"Fetching services for language: {lang}");
         return await _context.Services
-            .Where(s => s.Roles.Any(r => r.Name == "User" || r.Name == "Guest"))
+            .Where(s => s.Roles.Any(r => r.Name == "Registered_user" || r.Name == "Unregistered_user"))
             .Select(s => new ServiceDTO()
             {
                 Id = s.Id,
@@ -36,6 +37,73 @@ public class ServiceRepository : IServiceRepository
     public async Task<Service?> GetServiceByIdAsync(int serviceId)
     {
         return await _context.Services.FirstOrDefaultAsync(s => s.Id == serviceId);
+    }
+
+    public async Task AddServiceAsync(AddServiceDto addServiceDto)
+    {
+        var trasaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            var requiredService = await _context.Services.FirstOrDefaultAsync(s => s.Id == addServiceDto.serviceId);
+
+            if (requiredService == null && addServiceDto.serviceId != 0)
+            {
+                throw new ArgumentException("Required service with given id does not exist");
+            }
+            
+            var roles = await _context.Roles
+                .Where(r => addServiceDto.rolePermissionIds.Contains(r.Id))
+                .ToListAsync();
+
+            if (roles.IsNullOrEmpty())
+            {
+                throw new Exception("No valid roles found for the provided role IDs");
+            }
+            
+            var newService = new Service()
+            {
+                LowPrice = addServiceDto.LowPrice,
+                HighPrice = addServiceDto.HighPrice,
+                MinTime = addServiceDto.MinTime,
+                Roles = roles
+            };
+
+            await _context.Services.AddAsync(newService);
+            await _context.SaveChangesAsync();
+
+            var newServiceId = newService.Id;
+
+            foreach (var language in addServiceDto.Languages)
+            {
+                var serviceTranslation = new ServicesTranslation()
+                {
+                    ServiceId = newServiceId,
+                    LanguageCode = language.Code,
+                    Name = language.Name,
+                    Description = language.Description
+                };
+                await _context.ServicesTranslations.AddAsync(serviceTranslation);
+            }
+
+            await _context.SaveChangesAsync();
+
+            var newServiceDependencies = new ServiceDependency()
+            {
+                RequiredService = requiredService,
+                Service = newService
+            };
+
+            await _context.ServiceDependencies.AddAsync(newServiceDependencies);
+            await _context.SaveChangesAsync();
+
+            await trasaction.CommitAsync();
+        }
+        catch (Exception e)
+        {
+            await trasaction.RollbackAsync();
+            throw new Exception("Failed to add service", e);
+        }
     }
 
     [Authorize(Roles = "Receptionist")]

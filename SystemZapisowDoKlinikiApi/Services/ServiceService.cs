@@ -29,4 +29,14 @@ public class ServiceService : IServiceService
 
         return services;
     }
+    public async Task AddServiceAsync(AddServiceDto addServiceDto)
+    {
+        if (addServiceDto == null)
+        {
+            throw new ArgumentNullException(nameof(addServiceDto), "Service data is required.");
+        }
+        //TODO
+        
+        await _serviceRepository.AddServiceAsync(addServiceDto);
+    }
 }
