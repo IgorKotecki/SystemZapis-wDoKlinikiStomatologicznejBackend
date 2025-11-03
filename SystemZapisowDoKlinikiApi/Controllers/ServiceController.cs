@@ -47,6 +47,20 @@ public class ServiceController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-    
-    
+
+    [HttpGet("AllServices")]
+    public async Task<IActionResult> GetAllServicesAsync([FromQuery] string lang)
+    {
+        try
+        {
+            var services = await _serviceService.GerAllServicesAsync(lang);
+            if (!services.Any())
+                return NotFound("No services found.");
+            return Ok(services);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
 }

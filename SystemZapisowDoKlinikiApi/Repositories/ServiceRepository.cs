@@ -27,6 +27,7 @@ public class ServiceRepository : IServiceRepository
                 LowPrice = s.LowPrice,
                 HighPrice = s.HighPrice,
                 MinTime = s.MinTime,
+                //Category = s.Category,
                 LanguageCode = lang,
                 Name = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Name,
                 Description = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Description
@@ -104,6 +105,28 @@ public class ServiceRepository : IServiceRepository
             await trasaction.RollbackAsync();
             throw new Exception("Failed to add service", e);
         }
+    }
+
+    public async Task<ICollection<ServiceDTO>> GetAllServicesAsync(string lang)
+    {
+        return await _context.Services
+            .Select(s => new ServiceDTO()
+            {
+                Id = s.Id,
+                LowPrice = s.LowPrice,
+                HighPrice = s.HighPrice,
+                MinTime = s.MinTime,
+                Name = s.ServicesTranslations
+                    .Where(st => st.LanguageCode == lang)
+                    .Select(st => st.Name)
+                    .FirstOrDefault(),
+                Description = s.ServicesTranslations
+                    .Where(st => st.LanguageCode == lang)
+                    .Select(st => st.Description)
+                    .FirstOrDefault(),
+                LanguageCode = lang
+            })
+            .ToListAsync();
     }
 
     [Authorize(Roles = "Receptionist")]

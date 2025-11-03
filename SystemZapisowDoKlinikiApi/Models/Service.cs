@@ -13,6 +13,8 @@ public partial class Service
 
     public int MinTime { get; set; }
 
+    public string Category { get; set; }
+
     public virtual ICollection<ServiceDependency> ServiceDependencyRequiredServices { get; set; } = new List<ServiceDependency>();
 
     public virtual ICollection<ServiceDependency> ServiceDependencyServices { get; set; } = new List<ServiceDependency>();
