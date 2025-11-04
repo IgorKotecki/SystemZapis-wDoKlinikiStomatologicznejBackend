@@ -54,6 +54,10 @@ public class AuthenticationController : ControllerBase
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
 
+        int userId = user.Id;
+        
+        await _context.Database.ExecuteSqlRawAsync("EXEC CreateDefaultTeethModelForUser @UserId = {0}", userId);
+        
         return Ok();
     }
 

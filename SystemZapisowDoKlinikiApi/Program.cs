@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 using SystemZapisowDoKlinikiApi.Services;
@@ -21,6 +22,7 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IDoctorDaySchemeRepository, DoctorDaySchemeRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+builder.Services.AddScoped<IToothRepository, ToothRepository>();
 
 // Services
 builder.Services.AddScoped<ITimeBlockService, TimeBlockService>();
@@ -29,6 +31,7 @@ builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDoctorDaySchemeService, DoctorDaySchemeService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
+builder.Services.AddScoped<IToothService, ToothService>();
 
 builder.Services.AddHttpContextAccessor();
 

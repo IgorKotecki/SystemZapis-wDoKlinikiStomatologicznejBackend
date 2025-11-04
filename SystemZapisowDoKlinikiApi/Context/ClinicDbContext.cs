@@ -40,6 +40,10 @@ public partial class ClinicDbContext : DbContext
     public virtual DbSet<ToothStatus> ToothStatuses { get; set; }
 
     public virtual DbSet<ToothStatusTranslation> ToothStatusTranslations { get; set; }
+    
+    public DbSet<ToothStatusCategory> ToothStatusCategories { get; set; }
+    
+    public DbSet<ToothStatusCategoryTranslation> ToothStatusCategoryTranslations { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -309,6 +313,12 @@ public partial class ClinicDbContext : DbContext
             entity.ToTable("Tooth_status");
 
             entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CategoryId).HasColumnName("category_id");
+            
+            entity.HasOne(d => d.Category).WithMany(p => p.ToothStatuses)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Tooth_status_category");
         });
 
         modelBuilder.Entity<ToothStatusTranslation>(entity =>
@@ -329,6 +339,36 @@ public partial class ClinicDbContext : DbContext
             entity.HasOne(d => d.ToothStatus).WithMany(p => p.ToothStatusTranslations)
                 .HasForeignKey(d => d.ToothStatusId)
                 .HasConstraintName("FK_Tooth_status_translation");
+        });
+        modelBuilder.Entity<ToothStatusCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Tooth_status_category_pk");
+
+            entity.ToTable("Tooth_status_category");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+        });
+
+        modelBuilder.Entity<ToothStatusCategoryTranslation>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Tooth_status_category_translation_pk");
+
+            entity.ToTable("Tooth_status_category_translation");
+
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.LanguageCode)
+                .HasMaxLength(2)
+                .HasColumnName("language_code");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.CategoryId).HasColumnName("category_id");
+
+            entity.HasOne(d => d.Category)
+                .WithMany(p => p.Translations)
+                .HasForeignKey(d => d.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Tooth_status_category_translation");
         });
 
         modelBuilder.Entity<User>(entity =>
