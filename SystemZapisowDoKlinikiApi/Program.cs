@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using ProjektSemestralnyTinWebApi.Security;
 using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
@@ -32,6 +33,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDoctorDaySchemeService, DoctorDaySchemeService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IToothService, ToothService>();
+
+builder.Services.AddScoped<IEmailService, EmailSender>();
 
 builder.Services.AddHttpContextAccessor();
 

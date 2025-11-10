@@ -48,4 +48,14 @@ public class SecurityHelper
 
         return currentHashedPassword;
     }
+    
+    public static string GetResetPasswordToken()
+    {
+        var randomNumber = new byte[16];
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
+        }
+    }
 }
