@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
@@ -30,5 +31,22 @@ public class UserRepository : IUserRepository
     {
         //TODO pamietac ze podzszywac sie moze ktos i trzba potwierzdzic mailowo 
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    }
+
+    public async Task<UserDTO?> GetUserByIdAsync(int id)
+    {
+        return await _context.Users
+            .Include(u => u.Roles)
+            .Where(u => u.Id == id)
+            .Select(u => new UserDTO()
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Surname = u.Surname,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber,
+                RoleName = u.Roles.Name
+            })
+            .FirstOrDefaultAsync();
     }
 }

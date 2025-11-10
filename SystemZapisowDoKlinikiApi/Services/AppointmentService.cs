@@ -72,6 +72,22 @@ public class AppointmentService : IAppointmentService
         return _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang);
     }
 
+    public Task<bool> BookAppointmentAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto)
+    {
+        if(userId <= 0)
+        {
+            throw new ArgumentException("User ID must be a positive integer.", nameof(userId));
+        }
+        if(bookAppointmentRequestDto.DoctorId <= 0 ||
+           bookAppointmentRequestDto.ServiceIds == null ||
+           bookAppointmentRequestDto.ServiceIds.Count == 0)
+        {
+            throw new ArgumentException("Data in appointment is wrong or empty.", nameof(bookAppointmentRequestDto.DoctorId));
+        }
+
+        throw new InvalidOperationException();
+    }
+
     private void CheckUserDataForAppointment(AppointmentRequest appointmentRequest, User user)
     {
         if (user.Name != appointmentRequest.Name ||

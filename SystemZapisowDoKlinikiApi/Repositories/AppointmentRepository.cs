@@ -95,8 +95,47 @@ public class AppointmentRepository : IAppointmentRepository
                         .Select(st => st.Description)
                         .FirstOrDefault(),
                     LanguageCode = lang
-                }).ToList()
+                }).ToList(),
+                Status = a.DoctorBlock.TimeBlock.TimeEnd < DateTime.UtcNow ? "Completed" : "Scheduled"
             })
             .ToListAsync();
+    }
+
+    public async Task<bool> BookAppointmentAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto)
+    {
+        var doctorBlock = _context.DoctorBlocks
+            .Include(db => db.TimeBlock)
+            .Include(db =>  db.Appointments)
+            .FirstOrDefaultAsync(db => db.DoctorUserId == bookAppointmentRequestDto.DoctorId && db.TimeBlockId == bookAppointmentRequestDto.TimeBlockId);
+
+        if(doctorBlock == null)
+        {
+            throw new ArgumentException("Doctor block not found.");
+        }
+        if(doctorBlock.Result.Appointments.Any())
+        {
+            return await Task.FromResult(false);
+        }
+        
+        var services = _context.Services
+            .Where(s => bookAppointmentRequestDto.ServiceIds.Contains(s.Id))
+            .ToList();
+
+        if (!services.Any())
+        {
+            throw new ArgumentException("No valid services found for the provided service IDs");
+        }
+        
+        var appointment = new Appointment
+        {
+            DoctorBlockId = doctorBlock.Result.Id,
+            UserId = userId,
+            Services = services
+        };
+        
+        _context.Appointments.Add(appointment);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

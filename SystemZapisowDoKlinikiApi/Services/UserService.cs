@@ -1,4 +1,5 @@
-﻿using SystemZapisowDoKlinikiApi.Models;
+﻿using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 
 namespace SystemZapisowDoKlinikiApi.Services;
@@ -31,5 +32,10 @@ public class UserService : IUserService
         }
 
         return _userRepository.GetUserByEmailAsync(email);
+    }
+
+    public Task<UserDTO?> GetUserByIdAsync(int id)
+    {
+        return _userRepository.GetUserByIdAsync(id);
     }
 }

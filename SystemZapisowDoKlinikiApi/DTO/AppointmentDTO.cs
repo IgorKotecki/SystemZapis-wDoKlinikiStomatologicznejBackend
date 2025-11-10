@@ -8,4 +8,5 @@ public class AppointmentDto
 
     public TimeBlockDto DoctorBlock { get; set; }
     public ICollection<ServiceDTO> Services { get; set; }
+    public string Status { get; set; }
 }

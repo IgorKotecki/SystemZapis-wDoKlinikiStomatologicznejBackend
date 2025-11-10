@@ -10,4 +10,6 @@ public class UserDTO
     public string Email { get; set; } = null!;
 
     public string PhoneNumber { get; set; } = null!;
+
+    public string RoleName { get; set; } = null!;
 }
