@@ -51,7 +51,7 @@ public class AppointmentController : ControllerBase
         }
     }
 
-    [HttpPost("user/{userId}/book")]
+    [HttpPost("user/book")]
     public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
         try

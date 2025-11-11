@@ -3,30 +3,26 @@ using SystemZapisowDoKlinikiApi.Services;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
-public class UserController : ControllerBase
+[ApiController]
+[Route("api/[controller]")]
+public class UsersController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    private readonly IUserService _userService;
+
+    public UsersController(IUserService userService)
     {
-        private readonly IUserService _userService;
+        _userService = userService;
+    }
 
-        public UsersController(IUserService userService)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetUserById(int id)
+    {
+        var user = await _userService.GetUserByIdAsync(id);
+        if (user == null)
         {
-            _userService = userService;
+            return NotFound($"User with id = {id} not found.");
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetUserById(int id)
-        {
-            var user = await _userService.GetUserByIdAsync(id);
-            if (user == null)
-            {
-                return NotFound($"User with id = {id} not found.");
-            }
-            return Ok(user);
-        }
-
-
+        return Ok(user);
     }
 }
