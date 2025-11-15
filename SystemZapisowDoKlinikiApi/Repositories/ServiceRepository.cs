@@ -27,7 +27,7 @@ public class ServiceRepository : IServiceRepository
                 LowPrice = s.LowPrice,
                 HighPrice = s.HighPrice,
                 MinTime = s.MinTime,
-                //Category = s.Category,
+                Category = s.Category,
                 LanguageCode = lang,
                 Name = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Name,
                 Description = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Description
