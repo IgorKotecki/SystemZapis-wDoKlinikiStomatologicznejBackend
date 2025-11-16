@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Services;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
@@ -23,5 +24,16 @@ public class UserController : ControllerBase
         }
             
         return Ok(user); 
+    }
+    
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO dto)
+    {
+        var updated = await _userService.UpdateUserAsync(id, dto);
+
+        if (updated == null)
+            return NotFound("User not found");
+
+        return Ok(updated);
     }
 }
