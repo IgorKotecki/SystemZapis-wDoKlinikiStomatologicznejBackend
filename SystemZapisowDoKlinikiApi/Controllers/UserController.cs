@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Services;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
