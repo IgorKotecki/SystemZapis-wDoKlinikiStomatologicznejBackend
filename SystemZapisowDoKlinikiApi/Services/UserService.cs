@@ -38,4 +38,29 @@ public class UserService : IUserService
     {
         return _userRepository.GetUserByIdAsync(id);
     }
+    
+    public async Task<UserDTO?> UpdateUserAsync(int id, UserUpdateDTO dto)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+
+        if (user == null)
+            return null;
+
+        user.Name = dto.Name;
+        user.Surname = dto.Surname;
+        user.PhoneNumber = dto.PhoneNumber;
+        user.Email = dto.email;
+
+        await _userRepository.UpdateUserAsync(user);
+
+        return new UserDTO
+        {
+            Id = user.Id,
+            Name = user.Name,
+            Surname = user.Surname,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            RoleName = user.Roles?.Name ?? ""
+        };
+    }
 }

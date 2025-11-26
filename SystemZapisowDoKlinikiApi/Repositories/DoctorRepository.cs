@@ -1,4 +1,5 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using Microsoft.EntityFrameworkCore;
+using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
@@ -74,5 +75,19 @@ public class DoctorRepository : IDoctorRepository
             throw;
         }
 
+    }
+
+    public async Task<User?> GetDoctorByIdAsync(int doctorId)
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == doctorId); 
+    }
+    
+    public async Task<IEnumerable<User>> GetDoctorsByServiceAsync(int serviceId)
+    {
+        return await _context.Users
+            .Include(u => u.Roles)
+            .Where(u => u.Roles.Services.Any(s => s.Id == serviceId))
+            .Include(u => u.Doctor) 
+            .ToListAsync();;
     }
 }

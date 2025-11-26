@@ -15,9 +15,13 @@ public class TeamRepository : ITeamRepository
     
     public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
     {
+        var staffRoles = new int[] { 1, 2 };
+
         return await _context.Users
-            .Where(u => u.RolesId == 1 || u.RolesId == 2)
-            .Select(u => new TeamDTO()
+            .Where(u => staffRoles.Contains(u.RolesId))
+            .Include(u => u.Doctor)
+            .Include(u => u.Roles)
+            .Select(u => new TeamDTO
             {
                 Id = u.Id,
                 Name = u.Name,
@@ -25,7 +29,8 @@ public class TeamRepository : ITeamRepository
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 SpecializationPl = u.Doctor != null ? u.Doctor.SpecializationPl : null,
-                SpecializationEn = u.Doctor != null ? u.Doctor.SpecializationEn : null
+                SpecializationEn = u.Doctor != null ? u.Doctor.SpecializationEn : null,
+                RoleName = u.Roles != null ? u.Roles.Name : null
             })
             .ToListAsync();
     }

@@ -24,6 +24,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IDoctorDaySchemeRepository, DoctorDaySchemeRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IToothRepository, ToothRepository>();
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 
 // Services
 builder.Services.AddScoped<ITimeBlockService, TimeBlockService>();
@@ -33,6 +34,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDoctorDaySchemeService, DoctorDaySchemeService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IToothService, ToothService>();
+builder.Services.AddScoped<ITeamService, TeamService>();
 
 builder.Services.AddScoped<IEmailService, EmailSender>();
 

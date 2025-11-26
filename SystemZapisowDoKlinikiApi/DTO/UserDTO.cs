@@ -11,5 +11,5 @@ public class UserDTO
 
     public string PhoneNumber { get; set; } = null!;
 
-    public string RoleName { get; set; } = null!;
+    public string? RoleName { get; set; } = null!;
 }
