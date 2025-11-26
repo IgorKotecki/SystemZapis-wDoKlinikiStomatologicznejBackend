@@ -21,4 +21,19 @@ public class DoctorService : IDoctorService
     {
         await _DoctorRepository.DeleteDoctorAsync(doctorId);
     }
+    
+    public async Task<IEnumerable<DoctorDTO>> GetDoctorsByServiceAsync(int serviceId)
+    {
+        var doctors = await _DoctorRepository.GetDoctorsByServiceAsync(serviceId);
+
+        return doctors.Select(d => new DoctorDTO
+        {
+            Id = d.Id,
+            Name = d.Name,
+            Surname = d.Surname,
+            Email = d.Email,
+            SpecializationPl = d.Doctor?.SpecializationPl,
+            SpecializationEn = d.Doctor?.SpecializationEn
+        });
+    }
 }

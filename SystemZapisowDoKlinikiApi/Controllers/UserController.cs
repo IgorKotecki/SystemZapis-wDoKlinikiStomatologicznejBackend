@@ -26,7 +26,7 @@ public class UserController : ControllerBase
         return Ok(user); 
     }
     
-    [HttpPut("{id}")]
+    [HttpPut("edit/{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO dto)
     {
         var updated = await _userService.UpdateUserAsync(id, dto);

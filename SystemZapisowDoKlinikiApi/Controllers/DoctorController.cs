@@ -67,4 +67,11 @@ public class DoctorController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+    
+    [HttpGet("by-service/{serviceId}")]
+    public async Task<IActionResult> GetDoctorsByService(int serviceId)
+    {
+        var result = await _doctorService.GetDoctorsByServiceAsync(serviceId);
+        return Ok(result);
+    }
 }
