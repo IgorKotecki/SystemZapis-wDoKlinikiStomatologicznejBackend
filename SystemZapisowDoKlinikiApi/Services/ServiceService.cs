@@ -14,7 +14,6 @@ public class ServiceService : IServiceService
 
     public async Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang)
     {
-        
         if (string.IsNullOrWhiteSpace(lang))
         {
             throw new ArgumentException("Language code is required.");
@@ -29,14 +28,19 @@ public class ServiceService : IServiceService
 
         return services;
     }
+
     public async Task AddServiceAsync(AddServiceDto addServiceDto)
     {
         if (addServiceDto == null)
         {
             throw new ArgumentNullException(nameof(addServiceDto), "Service data is required.");
         }
-        //TODO
-        
+
+        if (addServiceDto.LowPrice == null && addServiceDto.HighPrice == null)
+        {
+            throw new ArgumentException("At least one price (LowPrice or HighPrice) must be provided.");
+        }
+
         await _serviceRepository.AddServiceAsync(addServiceDto);
     }
 
@@ -46,5 +50,10 @@ public class ServiceService : IServiceService
             lang = "pl";
 
         return _serviceRepository.GetAllServicesAsync(lang);
+    }
+
+    public Task DeleteServiceAsync(int serviceId)
+    {
+        return _serviceRepository.DeleteServiceAsync(serviceId);
     }
 }

@@ -20,10 +20,25 @@ public class DoctorController : ControllerBase
     }
 
     [HttpPut]
-    [Route("daySchemeUpdate/{dayOfWeek}")]
+    [Route("weekSchemeUpdate")]
     [Authorize(Roles = "Doctor")]
-    
-    public async Task<IActionResult> UpdateDoctorDaySchemeAsync(int dayOfWeek, [FromBody] DaySchemeDto daySchemeDto)
+    public async Task<IActionResult> UpdateDoctorDaySchemeAsync([FromBody] WeekSchemeDTO weekSchemeDto)
+    {
+        Console.WriteLine("Jestem");
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        await _doctorDaySchemeService.UpdateDoctorWeekSchemeAsync(int.Parse(userId), weekSchemeDto);
+        return Ok();
+    }
+
+    [HttpGet]
+    [Route("weekScheme")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> GetDoctorWeekSchemeAsync()
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
@@ -31,8 +46,8 @@ public class DoctorController : ControllerBase
             return Unauthorized();
         }
 
-        await _doctorDaySchemeService.UpdateDoctorDaySchemeAsync(int.Parse(userId), dayOfWeek, daySchemeDto);
-        return Ok();
+        var weekScheme = await _doctorDaySchemeService.GetDoctorWeekSchemeAsync(int.Parse(userId));
+        return Ok(weekScheme);
     }
 
     [HttpPost]
@@ -51,6 +66,7 @@ public class DoctorController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     [HttpDelete]
     [Route("deleteDoctor/{doctorId}")]
     [Authorize(Roles = "Admin")]
@@ -67,11 +83,11 @@ public class DoctorController : ControllerBase
             return BadRequest(e.Message);
         }
     }
-    
-    [HttpGet("by-service/{serviceId}")]
-    public async Task<IActionResult> GetDoctorsByService(int serviceId)
+
+    [HttpGet]
+    public async Task<IActionResult> GetDoctorsAsync()
     {
-        var result = await _doctorService.GetDoctorsByServiceAsync(serviceId);
+        var result = await _doctorService.GetDoctorsAsync();
         return Ok(result);
     }
 }

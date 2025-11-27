@@ -4,6 +4,6 @@ namespace SystemZapisowDoKlinikiApi.Services;
 
 public interface ITimeBlockService
 {
-    Task<ICollection<TimeBlockDto>> GetTimeBlocksAsync(DateRequest date);
+    Task<ICollection<TimeBlockDto>> GetTimeBlocksAsync(int id, DateRequest date);
     Task<TimeBlockDto?> GetTimeBlockByDoctorBlockIdAsync(int id);
 }

@@ -12,9 +12,9 @@ public class TimeBlockService : ITimeBlockService
         _timeBlockRepository = timeBlockRepository;
     }
 
-    public async Task<ICollection<TimeBlockDto>> GetTimeBlocksAsync(DateRequest date)
+    public async Task<ICollection<TimeBlockDto>> GetTimeBlocksAsync(int id, DateRequest date)
     {
-        return await _timeBlockRepository.GetTimeBlocksAsync(date);
+        return await _timeBlockRepository.GetTimeBlocksAsync(id, date);
     }
 
     public async Task<TimeBlockDto?> GetTimeBlockByDoctorBlockIdAsync(int id)

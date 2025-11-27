@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Services;
@@ -31,6 +30,7 @@ public class ServiceController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
     [HttpPost]
     [Route("addService")]
     [Authorize(Roles = "Admin")]
@@ -60,6 +60,23 @@ public class ServiceController : ControllerBase
         }
         catch (Exception e)
         {
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpDelete]
+    [Route("deleteService/{serviceId}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteServiceAsync([FromRoute] int serviceId)
+    {
+        try
+        {
+            await _serviceService.DeleteServiceAsync(serviceId);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
             return BadRequest(e.Message);
         }
     }

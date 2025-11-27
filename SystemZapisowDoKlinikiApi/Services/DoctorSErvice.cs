@@ -21,10 +21,10 @@ public class DoctorService : IDoctorService
     {
         await _DoctorRepository.DeleteDoctorAsync(doctorId);
     }
-    
-    public async Task<IEnumerable<DoctorDTO>> GetDoctorsByServiceAsync(int serviceId)
+
+    public async Task<IEnumerable<DoctorDTO>> GetDoctorsAsync()
     {
-        var doctors = await _DoctorRepository.GetDoctorsByServiceAsync(serviceId);
+        var doctors = await _DoctorRepository.GetDoctorsAsync();
 
         return doctors.Select(d => new DoctorDTO
         {

@@ -13,14 +13,15 @@ public class TimeBlockRepository : ITimeBlockRepository
         _context = context;
     }
 
-    public async Task<ICollection<TimeBlockDto>> GetTimeBlocksAsync(DateRequest date)
+    public async Task<ICollection<TimeBlockDto>> GetTimeBlocksAsync(int id, DateRequest date)
     {
         var startOfDay = new DateTime(date.Year, date.Month, date.Day);
         var endOfDay = startOfDay.AddDays(1);
         Console.WriteLine(date);
 
         var doctorBlocks = await _context.DoctorBlocks
-            .Where(db => db.TimeBlock.TimeStart >= startOfDay && db.TimeBlock.TimeStart < endOfDay)
+            .Where(db => db.TimeBlock.TimeStart >= startOfDay && db.TimeBlock.TimeStart < endOfDay &&
+                         db.DoctorUser.UserId == id)
             .Select(db => new TimeBlockDto
             {
                 DoctorBlockId = db.Id,

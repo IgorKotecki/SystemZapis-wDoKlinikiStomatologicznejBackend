@@ -12,16 +12,14 @@ public class DoctorDaySchemeService : IDoctorDaySchemeService
         _DoctorDaySchemeRepository = doctorDaySchemeRepository;
     }
 
-    public async Task UpdateDoctorDaySchemeAsync(int doctorId, int dayOfWeek, DaySchemeDto daySchemeDto)
+    public async Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDTO weekSchemeDto)
     {
-        if (IsValidTimeRange(daySchemeDto.StartHour, daySchemeDto.EndHour) && IsValidDayOfWeek(dayOfWeek))
-        {
-            await _DoctorDaySchemeRepository.UpdateDoctorDaySchemeAsync(doctorId, dayOfWeek, daySchemeDto);
-        }
-        else
-        {
-            throw new ArgumentException("Invalid time range or day of the week.");
-        }
+        await _DoctorDaySchemeRepository.UpdateDoctorWeekSchemeAsync(doctorId, weekSchemeDto);
+    }
+
+    public async Task<WeekSchemeDTO> GetDoctorWeekSchemeAsync(int userId)
+    {
+        return await _DoctorDaySchemeRepository.GetDoctorWeekSchemeAsync(userId);
     }
 
     private bool IsValidDayOfWeek(int dayOfWeek)

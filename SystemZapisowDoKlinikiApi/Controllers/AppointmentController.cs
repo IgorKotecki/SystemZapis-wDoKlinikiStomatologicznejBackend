@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Services;
@@ -18,12 +19,12 @@ public class AppointmentController : ControllerBase
 
     [HttpPost]
     [Route("guest")]
-    public async Task<IActionResult> PostGuestAppointment([FromBody] AppointmentRequest appointmentRequest)
+    public async Task<IActionResult> PostGuestAppointmentAsync([FromBody] AppointmentRequest appointmentRequest)
     {
         try
         {
             await _appointmentService.CreateAppointmentGuestAsync(appointmentRequest);
-            return CreatedAtAction(nameof(PostGuestAppointment), appointmentRequest);
+            return CreatedAtAction(string.Empty, appointmentRequest);
         }
         catch (Exception ex)
         {
@@ -33,7 +34,7 @@ public class AppointmentController : ControllerBase
 
     [HttpGet]
     [Route("user/{userId}")]
-    public async Task<IActionResult> GetAppointmentsByUserId(int userId, [FromQuery] string lang)
+    public async Task<IActionResult> GetAppointmentsByUserIdAsync(int userId, [FromQuery] string lang)
     {
         try
         {
@@ -52,21 +53,23 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpPost("user/book")]
+    [Authorize(Roles = "Registered_user")]
     public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
         try
         {
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userIdClaim))
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
             {
-                return Unauthorized("User is not authenticated.");
+                return Unauthorized();
             }
-            var userId = int.Parse(userIdClaim);
-            var success = await _appointmentService.BookAppointmentAsync(userId, bookAppointmentRequestDto);
+
+            var success = await _appointmentService.BookAppointmentAsync(int.Parse(userId), bookAppointmentRequestDto);
             if (success)
             {
                 return Ok("Appointment booked successfully.");
             }
+
             return BadRequest("Failed to book appointment.");
         }
         catch (Exception ex)

@@ -77,6 +77,24 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.ToTable("Role_Service_Permissions", (string)null);
                 });
 
+            modelBuilder.Entity("ServiceCategoryAssignment", b =>
+                {
+                    b.Property<int>("ServiceId")
+                        .HasColumnType("int")
+                        .HasColumnName("service_id");
+
+                    b.Property<int>("ServiceCategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("service_category_id");
+
+                    b.HasKey("ServiceId", "ServiceCategoryId")
+                        .HasName("Service_Category_Assignment_pk");
+
+                    b.HasIndex("ServiceCategoryId");
+
+                    b.ToTable("Service_Category_Assignment", (string)null);
+                });
+
             modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.AdditionalInformation", b =>
                 {
                     b.Property<int>("Id")
@@ -234,7 +252,6 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("name");
@@ -254,15 +271,11 @@ namespace SystemZapisowDoKlinikiApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("HighPrice")
+                    b.Property<decimal?>("HighPrice")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("high_price");
 
-                    b.Property<decimal>("LowPrice")
+                    b.Property<decimal?>("LowPrice")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("low_price");
 
@@ -274,6 +287,31 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                         .HasName("Services_pk");
 
                     b.ToTable("Services");
+                });
+
+            modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.ServiceCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("id");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("NameEn")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("name_en");
+
+                    b.Property<string>("NamePl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("name_pl");
+
+                    b.HasKey("Id")
+                        .HasName("ServiceCategory_pk");
+
+                    b.ToTable("ServiceCategory");
                 });
 
             modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.ServiceDependency", b =>
@@ -599,14 +637,33 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.HasOne("SystemZapisowDoKlinikiApi.Models.Role", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Role_Service_Permissions_Role");
 
                     b.HasOne("SystemZapisowDoKlinikiApi.Models.Service", null)
                         .WithMany()
                         .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Role_Service_Permissions_Service");
+                });
+
+            modelBuilder.Entity("ServiceCategoryAssignment", b =>
+                {
+                    b.HasOne("SystemZapisowDoKlinikiApi.Models.ServiceCategory", null)
+                        .WithMany()
+                        .HasForeignKey("ServiceCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ServiceCategoryAssignment_ServiceCategory");
+
+                    b.HasOne("SystemZapisowDoKlinikiApi.Models.Service", null)
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ServiceCategoryAssignment_Service");
                 });
 
             modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.Appointment", b =>
@@ -679,6 +736,7 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.HasOne("SystemZapisowDoKlinikiApi.Models.Service", "RequiredService")
                         .WithMany("ServiceDependencyRequiredServices")
                         .HasForeignKey("RequiredServiceId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .HasConstraintName("FK_ServiceDependencies_RequiredService");
 
                     b.HasOne("SystemZapisowDoKlinikiApi.Models.Service", "Service")

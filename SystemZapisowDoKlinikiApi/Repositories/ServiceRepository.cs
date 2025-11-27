@@ -27,11 +27,11 @@ public class ServiceRepository : IServiceRepository
                 LowPrice = s.LowPrice,
                 HighPrice = s.HighPrice,
                 MinTime = s.MinTime,
-                Category = s.Category,
                 LanguageCode = lang,
                 Name = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Name,
                 Description = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Description
             })
+            .OrderBy(sdto => sdto.Name)
             .ToListAsync();
     }
 
@@ -48,26 +48,36 @@ public class ServiceRepository : IServiceRepository
         {
             var requiredService = await _context.Services.FirstOrDefaultAsync(s => s.Id == addServiceDto.serviceId);
 
-            if (requiredService == null && addServiceDto.serviceId != 0)
+            if (requiredService == null && (addServiceDto.serviceId != 0 && addServiceDto.serviceId != null))
             {
                 throw new ArgumentException("Required service with given id does not exist");
             }
-            
-            var roles = await _context.Roles
-                .Where(r => addServiceDto.rolePermissionIds.Contains(r.Id))
-                .ToListAsync();
 
-            if (roles.IsNullOrEmpty())
+            List<Role> roles;
+            if (!addServiceDto.rolePermissionIds.IsNullOrEmpty())
             {
-                throw new Exception("No valid roles found for the provided role IDs");
+                roles = await _context.Roles
+                    .Where(r => addServiceDto.rolePermissionIds.Contains(r.Id))
+                    .ToListAsync();
+                if (roles.IsNullOrEmpty())
+                {
+                    throw new Exception("No valid roles found for the provided role IDs");
+                }
             }
-            
+            else
+            {
+                roles = new List<Role>();
+            }
+
             var newService = new Service()
             {
                 LowPrice = addServiceDto.LowPrice,
                 HighPrice = addServiceDto.HighPrice,
                 MinTime = addServiceDto.MinTime,
-                Roles = roles
+                Roles = roles,
+                ServiceCategories = await _context.ServiceCategory
+                    .Where(sc => addServiceDto.ServiceCategoriesId.Contains(sc.Id))
+                    .ToListAsync()
             };
 
             await _context.Services.AddAsync(newService);
@@ -125,8 +135,34 @@ public class ServiceRepository : IServiceRepository
                     .Select(st => st.Description)
                     .FirstOrDefault(),
                 LanguageCode = lang
-            })
+            }).OrderBy(s => s.Name)
             .ToListAsync();
+    }
+
+    public async Task DeleteServiceAsync(int serviceId)
+    {
+        var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var serviceToDelete = await _context.Services.FirstOrDefaultAsync(s => s.Id == serviceId);
+            if (serviceToDelete == null)
+            {
+                throw new ArgumentException("Service with given id does not exist");
+            }
+
+            await _context.ServiceDependencies.Where(s => s.ServiceId == serviceId || s.RequiredServiceId == serviceId)
+                .ForEachAsync(sd => _context.ServiceDependencies.Remove(sd));
+
+            _context.Services.Remove(serviceToDelete);
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw new Exception("Failed to delete service", e);
+        }
     }
 
     [Authorize(Roles = "Receptionist")]

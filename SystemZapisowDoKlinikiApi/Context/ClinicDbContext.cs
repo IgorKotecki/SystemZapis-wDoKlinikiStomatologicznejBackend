@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace SystemZapisowDoKlinikiApi.Models;
 
@@ -40,12 +38,14 @@ public partial class ClinicDbContext : DbContext
     public virtual DbSet<ToothStatus> ToothStatuses { get; set; }
 
     public virtual DbSet<ToothStatusTranslation> ToothStatusTranslations { get; set; }
-    
+
     public DbSet<ToothStatusCategory> ToothStatusCategories { get; set; }
-    
+
     public DbSet<ToothStatusCategoryTranslation> ToothStatusCategoryTranslations { get; set; }
+    public virtual DbSet<ServiceCategory> ServiceCategory { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.UseCollation("Polish_CI_AS");
@@ -200,11 +200,11 @@ public partial class ClinicDbContext : DbContext
                     "RoleServicePermission",
                     r => r.HasOne<Service>().WithMany()
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("FK_Role_Service_Permissions_Service"),
                     l => l.HasOne<Role>().WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.ClientSetNull)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("FK_Role_Service_Permissions_Role"),
                     j =>
                     {
@@ -222,11 +222,37 @@ public partial class ClinicDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.HighPrice)
                 .HasColumnType("decimal(10, 2)")
-                .HasColumnName("high_price");
+                .HasColumnName("high_price").IsRequired(false);
             entity.Property(e => e.LowPrice)
                 .HasColumnType("decimal(10, 2)")
-                .HasColumnName("low_price");
+                .HasColumnName("low_price").IsRequired(false);
             entity.Property(e => e.MinTime).HasColumnName("min_time");
+
+            entity.HasMany(e => e.ServiceCategories).WithMany(s => s.Services)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ServiceCategoryAssignment",
+                    r => r.HasOne<ServiceCategory>().WithMany()
+                        .HasForeignKey("ServiceCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_ServiceCategoryAssignment_ServiceCategory"),
+                    l => l.HasOne<Service>().WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasConstraintName("FK_ServiceCategoryAssignment_Service"),
+                    j =>
+                    {
+                        j.HasKey("ServiceId", "ServiceCategoryId").HasName("Service_Category_Assignment_pk");
+                        j.ToTable("Service_Category_Assignment");
+                        j.IndexerProperty<int>("ServiceId").HasColumnName("service_id");
+                        j.IndexerProperty<int>("ServiceCategoryId").HasColumnName("service_category_id");
+                    });
+        });
+        modelBuilder.Entity<ServiceCategory>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("ServiceCategory_pk");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.NamePl).HasColumnName("name_pl");
+            entity.Property(e => e.NameEn).HasColumnName("name_en");
         });
 
         modelBuilder.Entity<ServiceDependency>(entity =>
@@ -239,11 +265,12 @@ public partial class ClinicDbContext : DbContext
 
             entity.HasOne(d => d.RequiredService).WithMany(p => p.ServiceDependencyRequiredServices)
                 .HasForeignKey(d => d.RequiredServiceId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("FK_ServiceDependencies_RequiredService");
 
             entity.HasOne(d => d.Service).WithMany(p => p.ServiceDependencyServices)
                 .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ServiceDependencies_Service");
         });
 
@@ -267,6 +294,7 @@ public partial class ClinicDbContext : DbContext
 
             entity.HasOne(d => d.Service).WithMany(p => p.ServicesTranslations)
                 .HasForeignKey(d => d.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Services_translation_Service");
         });
 
@@ -314,7 +342,7 @@ public partial class ClinicDbContext : DbContext
 
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.CategoryId).HasColumnName("category_id");
-            
+
             entity.HasOne(d => d.Category).WithMany(p => p.ToothStatuses)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.Cascade)

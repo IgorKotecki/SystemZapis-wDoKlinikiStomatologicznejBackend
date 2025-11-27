@@ -27,16 +27,16 @@ public class DoctorRepository : IDoctorRepository
                 ImgPath = addDoctorDto.ImageUrl
             };
             await _context.Doctors.AddAsync(newDoctor);
-            
+
             var user = await _context.Users.FindAsync(addDoctorDto.UserId);
             if (user != null)
             {
                 user.RolesId = 1;
                 _context.Users.Update(user);
             }
-            
+
             await _context.SaveChangesAsync();
-            
+
             await transaction.CommitAsync();
         }
         catch
@@ -44,7 +44,6 @@ public class DoctorRepository : IDoctorRepository
             await transaction.RollbackAsync();
             throw;
         }
-
     }
 
     public async Task DeleteDoctorAsync(int doctorId)
@@ -56,7 +55,7 @@ public class DoctorRepository : IDoctorRepository
             var doctor = await _context.Doctors.FindAsync(doctorId);
             if (doctor == null)
                 throw new Exception("Doctor not found");
-            
+
             var user = await _context.Users.FindAsync(doctor.UserId);
             if (user != null)
             {
@@ -65,7 +64,7 @@ public class DoctorRepository : IDoctorRepository
             }
 
             _context.Doctors.Remove(doctor);
-            
+
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
@@ -74,20 +73,18 @@ public class DoctorRepository : IDoctorRepository
             await transaction.RollbackAsync();
             throw;
         }
-
     }
 
     public async Task<User?> GetDoctorByIdAsync(int doctorId)
     {
-        return await _context.Users.FirstOrDefaultAsync(u => u.Id == doctorId); 
+        return await _context.Users.FirstOrDefaultAsync(u => u.Id == doctorId);
     }
-    
-    public async Task<IEnumerable<User>> GetDoctorsByServiceAsync(int serviceId)
+
+    public async Task<IEnumerable<User>> GetDoctorsAsync()
     {
         return await _context.Users
-            .Include(u => u.Roles)
-            .Where(u => u.Roles.Services.Any(s => s.Id == serviceId))
-            .Include(u => u.Doctor) 
-            .ToListAsync();;
+            .Include(u => u.Doctor)
+            .Where(u => u.RolesId == 1)
+            .ToListAsync();
     }
 }

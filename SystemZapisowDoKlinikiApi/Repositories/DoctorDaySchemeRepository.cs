@@ -13,34 +13,72 @@ public class DoctorDaySchemeRepository : IDoctorDaySchemeRepository
         _context = context;
     }
 
-    public async Task UpdateDoctorDaySchemeAsync(int doctorId, int dayOfWeek, DaySchemeDto daySchemeDto)
+    public async Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDTO weekSchemeDto)
     {
-        var existingScheme = await _context.DaySchemeTimeBlocks.FirstOrDefaultAsync(d =>
-            d.DoctorUser.UserId == doctorId && d.WeekDay == dayOfWeek);
-
-        if (existingScheme != null)
+        var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            existingScheme.JobStart = daySchemeDto.StartHour;
-            existingScheme.JobEnd = daySchemeDto.EndHour;
-            _context.DaySchemeTimeBlocks.Update(existingScheme);
-        }
-        else
-        {
-            var doctorUser = await _context.Doctors.FirstOrDefaultAsync(du => du.UserId == doctorId);
-            if (doctorUser == null)
+            for (int i = 1; i < 7; i++)
             {
-                throw new ArgumentException($"Doctor with ID {doctorId} not found.");
+                var daySchemeDto = weekSchemeDto.DaysSchemes.FirstOrDefault(ds => ds.DayOfWeek == i);
+                if (daySchemeDto == null)
+                {
+                    var weekDay = i;
+                    await _context.DaySchemeTimeBlocks
+                        .Where(ds => ds.DoctorUser.UserId == doctorId && ds.WeekDay == weekDay)
+                        .ExecuteDeleteAsync();
+                    continue;
+                }
+
+                var existingDayScheme = await _context.DaySchemeTimeBlocks
+                    .FirstOrDefaultAsync(ds =>
+                        ds.DoctorUser.UserId == doctorId && ds.WeekDay == daySchemeDto.DayOfWeek);
+                if (existingDayScheme != null)
+                {
+                    existingDayScheme.JobStart = daySchemeDto.StartHour;
+                    existingDayScheme.JobEnd = daySchemeDto.EndHour;
+                    _context.DaySchemeTimeBlocks.Update(existingDayScheme);
+                }
+                else
+                {
+                    var doctorUser = await _context.Doctors.FirstOrDefaultAsync(d => d.UserId == doctorId);
+                    if (doctorUser == null)
+                        throw new Exception("Doctor not found");
+
+                    var newDayScheme = new DaySchemeTimeBlock
+                    {
+                        DoctorUser = doctorUser,
+                        WeekDay = daySchemeDto.DayOfWeek,
+                        JobStart = daySchemeDto.StartHour,
+                        JobEnd = daySchemeDto.EndHour
+                    };
+                    await _context.DaySchemeTimeBlocks.AddAsync(newDayScheme);
+                }
             }
-            var newScheme = new DaySchemeTimeBlock
-            {
-                DoctorUser = doctorUser,
-                WeekDay = dayOfWeek,
-                JobStart = daySchemeDto.StartHour,
-                JobEnd = daySchemeDto.EndHour,
-            };
-            _context.DaySchemeTimeBlocks.Add(newScheme);
-        }
 
-        await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<WeekSchemeDTO> GetDoctorWeekSchemeAsync(int UserId)
+    {
+        var weekScheme = new WeekSchemeDTO()
+        {
+            DaysSchemes = await _context.DaySchemeTimeBlocks
+                .Where(d => d.DoctorUser.UserId == UserId)
+                .Select(ds => new DaySchemeDto()
+                {
+                    DayOfWeek = ds.WeekDay,
+                    StartHour = ds.JobStart,
+                    EndHour = ds.JobEnd
+                }).ToListAsync()
+        };
+        return weekScheme;
     }
 }

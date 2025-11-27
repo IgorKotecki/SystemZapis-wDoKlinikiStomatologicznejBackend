@@ -2,8 +2,6 @@
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +30,7 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<IActionResult> RegisterUser(RegisterRequest model)
+    public async Task<IActionResult> RegisterUserAsync(RegisterRequest model)
     {
         var hashedPasswordAndSalt = SecurityHelper.GetHashedPasswordAndSalt(model.Password);
 
@@ -68,7 +66,7 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    public async Task<IActionResult> LoginUser(LoginRequest model)
+    public async Task<IActionResult> LoginUserAsync(LoginRequest model)
     {
         var user = await _context.Users.Include(user => user.Roles).FirstOrDefaultAsync(u => u.Email == model.Email);
         if (user == null)
@@ -114,7 +112,7 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshToken(RefreshTokenRequest model)
+    public async Task<IActionResult> RefreshTokenAsync(RefreshTokenRequest model)
     {
         var user = await _context.Users.Include(user => user.Roles)
             .FirstOrDefaultAsync(u => u.RefreshToken.Trim() == model.RefreshToken.Trim());
@@ -160,7 +158,7 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPost("forgotPassword")]
-    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest model)
+    public async Task<IActionResult> ForgotPasswordAsync(ForgotPasswordRequest model)
     {
         Console.WriteLine(model.Email);
         if (!ModelState.IsValid)
@@ -182,7 +180,7 @@ public class AuthenticationController : ControllerBase
             new Claim(ClaimTypes.Email, user.Email),
             new Claim("purpose", "passwordReset")
         };
-        
+
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
@@ -190,18 +188,19 @@ public class AuthenticationController : ControllerBase
             expires: DateTime.Now.AddMinutes(30),
             signingCredentials: creds
         );
-        
+
         var resetToken = new JwtSecurityTokenHandler().WriteToken(token);
-        
+
         var resetLink = $"{_configuration["Frontend:Url"]}/resetPassword?token={resetToken}&email={user.Email}";
-        
+
         await _emailSender.SendEmailAsync(model.Email, "Password Reset",
             $"Click the following link to reset your password: {resetLink}");
-        
+
         return Ok();
     }
+
     [HttpPost("resetPassword")]
-    public async Task<IActionResult> ResetPassword(ResetPasswordDto model)
+    public async Task<IActionResult> ResetPasswordAsync(ResetPasswordDto model)
     {
         if (!ModelState.IsValid)
         {
