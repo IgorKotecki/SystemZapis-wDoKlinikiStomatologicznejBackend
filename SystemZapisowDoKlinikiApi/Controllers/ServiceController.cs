@@ -54,7 +54,7 @@ public class ServiceController : ControllerBase
         try
         {
             var services = await _serviceService.GerAllServicesAsync(lang);
-            if (!services.Any())
+            if (!services.ServicesByCategory.Any())
                 return NotFound("No services found.");
             return Ok(services);
         }

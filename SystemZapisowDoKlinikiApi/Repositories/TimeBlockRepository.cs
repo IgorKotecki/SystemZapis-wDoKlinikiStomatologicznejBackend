@@ -61,4 +61,20 @@ public class TimeBlockRepository : ITimeBlockRepository
             //Troche ciezka operacja mozna od razu przy zapisywawniu wstawiac flage dostepnosci
         }).FirstOrDefaultAsync();
     }
+
+    public async Task<bool> CheckIfAvailableTimeBlockAsync(DateTime startTime, int duration)
+    {
+        for (int i = 0; i < duration; i++)
+        {
+            var time = startTime.AddMinutes(30 * i);
+            var occupiedDoctorBlock =
+                await _context.Appointments.AnyAsync(db => db.DoctorBlock.TimeBlock.TimeStart == time);
+            if (occupiedDoctorBlock)
+            {
+                throw new Exception("Cannot book appointment, this hour is occupied");
+            }
+        }
+
+        return true;
+    }
 }

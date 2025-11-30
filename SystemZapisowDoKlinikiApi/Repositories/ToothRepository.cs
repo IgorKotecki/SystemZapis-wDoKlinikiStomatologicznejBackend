@@ -20,6 +20,12 @@ public class ToothRepository : IToothRepository
         if (!userExists)
             throw new ArgumentException("User not found", nameof(request.UserId));
 
+        var teethNames = await _context.ToothNames
+            .ToDictionaryAsync(
+                tn => tn.ToothNumber,
+                tn => request.Language == "pl" ? tn.NamePl : tn.NameEn
+            );
+
         var teeth = await _context.Teeth
             .Include(t => t.ToothStatus)
             .ThenInclude(s => s.ToothStatusTranslations)
@@ -30,6 +36,9 @@ public class ToothRepository : IToothRepository
             .Select(t => new ToothOutDTO
             {
                 ToothNumber = t.ToothNumber,
+                ToothName = teethNames.ContainsKey(t.ToothNumber)
+                    ? teethNames[t.ToothNumber]
+                    : "Unknown",
                 Status = new ToothStatusOutDto
                 {
                     StatusId = t.ToothStatus.Id,
@@ -85,7 +94,7 @@ public class ToothRepository : IToothRepository
         }
     }
 
-    public async Task<ICollection<ToothStatusOutDto>> GetToothStatusesAsync(string language)
+    public async Task<ToothStatusesDto> GetToothStatusesAsync(string language)
     {
         var statuses = await _context.ToothStatuses
             .Include(ts => ts.ToothStatusTranslations)
@@ -103,6 +112,15 @@ public class ToothRepository : IToothRepository
                 }
             )
             .ToListAsync();
-        return statuses;
+        var statusesDto = new ToothStatusesDto
+        {
+            StatusesByCategories = statuses
+                .GroupBy(s => s.CategoryName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.ToList()
+                )
+        };
+        return statusesDto;
     }
 }

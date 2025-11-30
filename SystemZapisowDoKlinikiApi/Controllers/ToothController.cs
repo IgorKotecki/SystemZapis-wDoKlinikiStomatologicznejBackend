@@ -23,11 +23,12 @@ public class ToothController : ControllerBase
             var toothModel = await _toothService.GetToothModelAsync(request);
             return Ok(toothModel);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             return NotFound(e.Message);
         }
     }
+
     [HttpPut]
     [Route("UpdateToothModel")]
     public async Task<IActionResult> UpdateToothModelAsync([FromBody] ToothModelInDTO request)
@@ -37,14 +38,15 @@ public class ToothController : ControllerBase
             await _toothService.UpdateToothModelAsync(request);
             return Ok();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             return BadRequest(e.Message);
         }
     }
+
     [HttpGet]
     [Route("Statuses")]
-    public async Task<ActionResult<ICollection<ToothStatusOutDto>>> GetToothStatuses([FromQuery] string language)
+    public async Task<ActionResult<ToothStatusesDto>> GetToothStatuses([FromQuery] string language)
     {
         try
         {

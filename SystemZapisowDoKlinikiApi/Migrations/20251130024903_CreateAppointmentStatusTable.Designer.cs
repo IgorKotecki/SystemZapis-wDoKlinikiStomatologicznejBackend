@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemZapisowDoKlinikiApi.Models;
 
@@ -11,9 +12,11 @@ using SystemZapisowDoKlinikiApi.Models;
 namespace SystemZapisowDoKlinikiApi.Migrations
 {
     [DbContext(typeof(ClinicDbContext))]
-    partial class ClinicDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251130024903_CreateAppointmentStatusTable")]
+    partial class CreateAppointmentStatusTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -133,13 +136,9 @@ namespace SystemZapisowDoKlinikiApi.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AppointmentGroupId")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)")
+                    b.Property<int>("AppointmentGroupId")
+                        .HasColumnType("int")
                         .HasColumnName("Appointment_Group_Id");
-
-                    b.Property<int>("AppointmentStatusId")
-                        .HasColumnType("int");
 
                     b.Property<int>("DoctorBlockId")
                         .HasColumnType("int")
@@ -151,8 +150,6 @@ namespace SystemZapisowDoKlinikiApi.Migrations
 
                     b.HasKey("Id")
                         .HasName("Appointment_pk");
-
-                    b.HasIndex("AppointmentStatusId");
 
                     b.HasIndex("DoctorBlockId");
 
@@ -725,12 +722,6 @@ namespace SystemZapisowDoKlinikiApi.Migrations
 
             modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.Appointment", b =>
                 {
-                    b.HasOne("SystemZapisowDoKlinikiApi.Models.AppointmentStatus", "AppointmentStatus")
-                        .WithMany()
-                        .HasForeignKey("AppointmentStatusId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("SystemZapisowDoKlinikiApi.Models.DoctorBlock", "DoctorBlock")
                         .WithMany("Appointments")
                         .HasForeignKey("DoctorBlockId")
@@ -744,8 +735,6 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_Appointment_User");
-
-                    b.Navigation("AppointmentStatus");
 
                     b.Navigation("DoctorBlock");
 

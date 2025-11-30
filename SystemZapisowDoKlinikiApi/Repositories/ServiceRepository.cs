@@ -117,9 +117,9 @@ public class ServiceRepository : IServiceRepository
         }
     }
 
-    public async Task<ICollection<ServiceDTO>> GetAllServicesAsync(string lang)
+    public async Task<AllServicesDto> GetAllServicesAsync(string lang)
     {
-        return await _context.Services
+        var serviceDtos = await _context.Services
             .Select(s => new ServiceDTO()
             {
                 Id = s.Id,
@@ -134,9 +134,30 @@ public class ServiceRepository : IServiceRepository
                     .Where(st => st.LanguageCode == lang)
                     .Select(st => st.Description)
                     .FirstOrDefault(),
-                LanguageCode = lang
-            }).OrderBy(s => s.Name)
+                LanguageCode = lang,
+                Catergories = s.ServiceCategories
+                    .Select(sc => lang == "pl" ? sc.NamePl : sc.NameEn)
+                    .ToList()
+            }).OrderBy(s => s.Id)
             .ToListAsync();
+        var servicesByCategory = new Dictionary<string, ICollection<ServiceDTO>>();
+        foreach (var serviceDto in serviceDtos)
+        {
+            foreach (var category in serviceDto.Catergories)
+            {
+                if (!servicesByCategory.ContainsKey(category))
+                {
+                    servicesByCategory[category] = new List<ServiceDTO>();
+                }
+
+                servicesByCategory[category].Add(serviceDto);
+            }
+        }
+
+        return new AllServicesDto
+        {
+            ServicesByCategory = servicesByCategory
+        };
     }
 
     public async Task DeleteServiceAsync(int serviceId)

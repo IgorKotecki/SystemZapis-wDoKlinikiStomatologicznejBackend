@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+﻿using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 
@@ -53,89 +54,222 @@ public class AppointmentRepository : IAppointmentRepository
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang)
     {
-        return await _context.Appointments
+        var appointments = await _context.Appointments
+            .Include(a => a.Services)
+            .ThenInclude(s => s.ServicesTranslations)
+            .Include(a => a.Services)
+            .ThenInclude(s => s.ServiceCategories)
+            .Include(a => a.AppointmentStatus)
+            .Include(a => a.DoctorBlock)
+            .ThenInclude(db => db.DoctorUser)
+            .ThenInclude(du => du.User)
+            .Include(a => a.User)
+            .Include(a => a.DoctorBlock)
+            .ThenInclude(db => db.TimeBlock)
             .Where(a => a.UserId == userId)
-            .Select(a => new AppointmentDto
-            {
-                Id = a.Id,
-                DoctorBlock = new TimeBlockDto()
-                {
-                    DoctorBlockId = a.DoctorBlockId,
-                    isAvailable = false,
-                    TimeStart = a.DoctorBlock.TimeBlock.TimeStart,
-                    TimeEnd = a.DoctorBlock.TimeBlock.TimeEnd,
-                    User = new UserDTO()
-                    {
-                        Id = a.DoctorBlock.DoctorUser.UserId,
-                        Name = a.DoctorBlock.DoctorUser.User.Name,
-                        Surname = a.DoctorBlock.DoctorUser.User.Surname,
-                        Email = a.DoctorBlock.DoctorUser.User.Email,
-                        PhoneNumber = a.DoctorBlock.DoctorUser.User.PhoneNumber
-                    }
-                },
-                User = new UserDTO()
-                {
-                    Name = a.User.Name,
-                    Surname = a.User.Surname,
-                    Email = a.User.Email,
-                    PhoneNumber = a.User.PhoneNumber,
-                },
-                Services = a.Services.Select(s => new ServiceDTO
-                {
-                    Id = s.Id,
-                    Name = s.ServicesTranslations
-                        .Where(st => st.LanguageCode == lang)
-                        .Select(st => st.Name)
-                        .FirstOrDefault(),
-                    MinTime = s.MinTime,
-                    LowPrice = s.LowPrice,
-                    HighPrice = s.HighPrice,
-                    Description = s.ServicesTranslations
-                        .Where(st => st.LanguageCode == lang)
-                        .Select(st => st.Description)
-                        .FirstOrDefault(),
-                    LanguageCode = lang
-                }).ToList(),
-                Status = a.DoctorBlock.TimeBlock.TimeEnd < DateTime.UtcNow ? "Completed" : "Scheduled"
-            })
             .ToListAsync();
+        var groupedAppointments = appointments
+            .GroupBy(a => a.AppointmentGroupId);
+        var result = new List<AppointmentDto>();
+        foreach (var group in groupedAppointments)
+        {
+            var orderedBlocks = group.OrderBy(a => a.DoctorBlock.TimeBlock.TimeStart).ToList();
+
+            var dto = new AppointmentDto
+            {
+                User = new UserDTO
+                {
+                    Id = group.First().User.Id,
+                    Name = group.First().User.Name,
+                    Surname = group.First().User.Surname,
+                    Email = group.First().User.Email,
+                    PhoneNumber = group.First().User.PhoneNumber
+                },
+                AppointmentGroupId = group.Key!,
+                StartTime = orderedBlocks.First().DoctorBlock.TimeBlock.TimeStart,
+                EndTime = orderedBlocks.Last().DoctorBlock.TimeBlock.TimeEnd,
+                Doctor = new UserDTO
+                {
+                    Name = group.First().DoctorBlock.DoctorUser.User.Name,
+                    Surname = group.First().DoctorBlock.DoctorUser.User.Surname,
+                    Email = group.First().DoctorBlock.DoctorUser.User.Email
+                },
+                Services = group
+                    .SelectMany(a => a.Services)
+                    .Select(s => new ServiceDTO
+                    {
+                        Id = s.Id,
+                        LowPrice = s.LowPrice,
+                        HighPrice = s.HighPrice,
+                        MinTime = s.MinTime,
+                        LanguageCode = lang,
+                        Name = s.ServicesTranslations
+                            .Where(t => t.LanguageCode == lang)
+                            .Select(t => t.Name)
+                            .FirstOrDefault(),
+                        Catergories = s.ServiceCategories
+                            .Select(c => lang == "pl" ? c.NamePl : c.NameEn)
+                            .ToList()
+                    })
+                    .DistinctBy(s => s.Id) // wymaga System.Linq, usuwa duplikaty usług
+                    .ToList(),
+
+                Status = lang == "pl"
+                    ? group.First().AppointmentStatus.NamePl
+                    : group.First().AppointmentStatus.NameEn
+            };
+            result.Add(dto);
+        }
+
+        return result;
     }
 
-    public async Task<bool> BookAppointmentAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto)
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, DateTime date,
+        string lang)
     {
-        var doctorBlock = _context.DoctorBlocks
-            .Include(db => db.TimeBlock)
-            .Include(db =>  db.Appointments)
-            .FirstOrDefaultAsync(db => db.DoctorUserId == bookAppointmentRequestDto.DoctorId && db.TimeBlockId == bookAppointmentRequestDto.TimeBlockId);
+        var appointments = await _context.Appointments
+            .Include(a => a.Services)
+            .ThenInclude(s => s.ServicesTranslations)
+            .Include(a => a.Services)
+            .ThenInclude(s => s.ServiceCategories)
+            .Include(a => a.AppointmentStatus)
+            .Include(a => a.DoctorBlock)
+            .ThenInclude(db => db.DoctorUser)
+            .ThenInclude(du => du.User)
+            .Include(a => a.User)
+            .Include(a => a.DoctorBlock)
+            .ThenInclude(db => db.TimeBlock)
+            .Where(a => a.DoctorBlock.DoctorUserId == doctorId) // filtr po lekarzu
+            .ToListAsync();
 
-        if(doctorBlock == null)
-        {
-            throw new ArgumentException("Doctor block not found.");
-        }
-        if(doctorBlock.Result.Appointments.Any())
-        {
-            return await Task.FromResult(false);
-        }
-        
-        var services = _context.Services
-            .Where(s => bookAppointmentRequestDto.ServiceIds.Contains(s.Id))
-            .ToList();
+        var groupedAppointments = appointments
+            .GroupBy(a => a.AppointmentGroupId);
 
-        if (!services.Any())
-        {
-            throw new ArgumentException("No valid services found for the provided service IDs");
-        }
-        
-        var appointment = new Appointment
-        {
-            DoctorBlockId = doctorBlock.Result.Id,
-            UserId = userId,
-            Services = services
-        };
-        
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
+        var result = new List<AppointmentDto>();
 
-        return true;
+        foreach (var group in groupedAppointments)
+        {
+            var orderedBlocks = group.OrderBy(a => a.DoctorBlock.TimeBlock.TimeStart).ToList();
+
+            var dto = new AppointmentDto
+            {
+                User = new UserDTO
+                {
+                    Id = group.First().User.Id,
+                    Name = group.First().User.Name,
+                    Surname = group.First().User.Surname,
+                    Email = group.First().User.Email,
+                    PhoneNumber = group.First().User.PhoneNumber
+                },
+                AppointmentGroupId = group.Key!,
+                StartTime = orderedBlocks.First().DoctorBlock.TimeBlock.TimeStart,
+                EndTime = orderedBlocks.Last().DoctorBlock.TimeBlock.TimeEnd,
+                Doctor = new UserDTO
+                {
+                    Name = group.First().DoctorBlock.DoctorUser.User.Name,
+                    Surname = group.First().DoctorBlock.DoctorUser.User.Surname,
+                    Email = group.First().DoctorBlock.DoctorUser.User.Email
+                },
+                Services = group
+                    .SelectMany(a => a.Services)
+                    .Select(s => new ServiceDTO
+                    {
+                        Id = s.Id,
+                        LowPrice = s.LowPrice,
+                        HighPrice = s.HighPrice,
+                        MinTime = s.MinTime,
+                        LanguageCode = lang,
+                        Name = s.ServicesTranslations
+                            .Where(t => t.LanguageCode == lang)
+                            .Select(t => t.Name)
+                            .FirstOrDefault(),
+                        Catergories = s.ServiceCategories
+                            .Select(c => lang == "pl" ? c.NamePl : c.NameEn)
+                            .ToList()
+                    })
+                    .DistinctBy(s => s.Id)
+                    .ToList(),
+                Status = lang == "pl"
+                    ? group.First().AppointmentStatus.NamePl
+                    : group.First().AppointmentStatus.NameEn
+            };
+
+            result.Add(dto);
+        }
+
+        return result;
+    }
+
+    public async Task<bool> BookAppointmentForRegisteredUserAsync(int userId,
+        BookAppointmentRequestDTO bookAppointmentRequestDto)
+    {
+        await using IDbContextTransaction transaction =
+            await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
+        try
+        {
+            var duration = 0;
+            var guid = Guid.NewGuid();
+            var services = await _context.Services
+                .Where(s => bookAppointmentRequestDto.ServicesIds.Contains(s.Id))
+                .ToListAsync();
+            if (services.IsNullOrEmpty())
+            {
+                throw new Exception("No services found for the provided IDs.");
+            }
+
+            foreach (var servicesId in bookAppointmentRequestDto.ServicesIds)
+            {
+                var service = services.FirstOrDefault(s => s.Id == servicesId);
+                if (service == null)
+                {
+                    throw new Exception($"Service with Id {servicesId} not found.");
+                }
+
+                for (int i = 1; i <= service.MinTime; i++)
+                {
+                    if (duration > bookAppointmentRequestDto.Duration)
+                    {
+                        throw new Exception("Somthing went wrong with booking");
+                    }
+
+                    var time = bookAppointmentRequestDto.StartTime.AddMinutes(30 * duration);
+                    var doctorBlockId = await _context.DoctorBlocks
+                        .Where(db =>
+                            db.TimeBlock.TimeStart == time && db.DoctorUserId == bookAppointmentRequestDto.DoctorId)
+                        .Select(db => db.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (doctorBlockId == 0)
+                        throw new Exception($"No available doctor block for time {time}");
+
+                    var isOccupied = await _context.Appointments
+                        .AnyAsync(a => a.DoctorBlockId == doctorBlockId);
+
+                    if (isOccupied)
+                        throw new Exception($"Doctor block for time {time} is already booked.");
+
+                    var appointment = new Appointment()
+                    {
+                        UserId = userId,
+                        DoctorBlockId = doctorBlockId,
+                        AppointmentGroupId = guid.ToString(),
+                        AppointmentStatusId = 1,
+                        Services = new List<Service>()
+                    };
+                    duration++;
+                    appointment.Services.Add(service);
+                    await _context.Appointments.AddAsync(appointment);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            throw new Exception("Database Exception cannot book appointment", ex);
+        }
     }
 }

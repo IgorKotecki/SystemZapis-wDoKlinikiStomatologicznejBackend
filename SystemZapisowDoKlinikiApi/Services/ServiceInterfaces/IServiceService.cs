@@ -6,6 +6,6 @@ public interface IServiceService
 {
     public Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang);
     public Task AddServiceAsync(AddServiceDto addServiceDto);
-    public Task<ICollection<ServiceDTO>> GerAllServicesAsync(string lang);
+    public Task<AllServicesDto> GerAllServicesAsync(string lang);
     Task DeleteServiceAsync(int serviceId);
 }

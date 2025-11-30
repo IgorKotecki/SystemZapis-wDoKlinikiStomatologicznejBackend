@@ -6,5 +6,5 @@ public interface IToothRepository
 {
     public Task<ToothModelOutDTO> GetToothModelAsync(ToothModelRequest request);
     Task UpdateToothModelAsync(ToothModelInDTO request);
-    Task<ICollection<ToothStatusOutDto>> GetToothStatusesAsync(string language);
+    Task<ToothStatusesDto> GetToothStatusesAsync(string language);
 }

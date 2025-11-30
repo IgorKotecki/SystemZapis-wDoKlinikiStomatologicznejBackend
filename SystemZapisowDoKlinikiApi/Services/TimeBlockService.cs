@@ -21,4 +21,9 @@ public class TimeBlockService : ITimeBlockService
     {
         return await _timeBlockRepository.GetTimeBlockByDoctorBlockIdAsync(id);
     }
+
+    public async Task<bool> CheckIfAvailableTimeBlockAsync(DateTime startTime, int duration)
+    {
+        return await _timeBlockRepository.CheckIfAvailableTimeBlockAsync(startTime, duration);
+    }
 }

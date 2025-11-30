@@ -44,7 +44,7 @@ public class ServiceService : IServiceService
         await _serviceRepository.AddServiceAsync(addServiceDto);
     }
 
-    public Task<ICollection<ServiceDTO>> GerAllServicesAsync(string lang)
+    public Task<AllServicesDto> GerAllServicesAsync(string lang)
     {
         if (string.IsNullOrEmpty(lang))
             lang = "pl";

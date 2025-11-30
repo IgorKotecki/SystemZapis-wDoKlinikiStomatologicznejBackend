@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 
@@ -72,20 +71,22 @@ public class AppointmentService : IAppointmentService
         return _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang);
     }
 
-    public Task<bool> BookAppointmentAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto)
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, string lang,
+        DateTime date)
     {
-        if(userId <= 0)
+        if (doctorId <= 0)
         {
-            throw new ArgumentException("User ID must be a positive integer.", nameof(userId));
-        }
-        if(bookAppointmentRequestDto.DoctorId <= 0 ||
-           bookAppointmentRequestDto.ServiceIds == null ||
-           bookAppointmentRequestDto.ServiceIds.Count == 0)
-        {
-            throw new ArgumentException("Data in appointment is wrong or empty.", nameof(bookAppointmentRequestDto.DoctorId));
+            throw new ArgumentException("Doctor ID must be a positive integer.", nameof(doctorId));
         }
 
-        throw new InvalidOperationException();
+        var mondayDate = GetMonday(date);
+        return await _appointmentRepository.GetAppointmentsByDoctorIdAsync(doctorId, mondayDate, lang);
+    }
+
+    public async Task<bool> BookAppointmentForRegisteredUserAsync(int userId,
+        BookAppointmentRequestDTO bookAppointmentRequestDto)
+    {
+        return await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
     }
 
     private void CheckUserDataForAppointment(AppointmentRequest appointmentRequest, User user)
@@ -98,5 +99,11 @@ public class AppointmentService : IAppointmentService
             throw new ArgumentException("Data in appointment don't mach user with specified email.",
                 nameof(appointmentRequest));
         }
+    }
+
+    private static DateTime GetMonday(DateTime date)
+    {
+        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+        return date.AddDays(-diff).Date;
     }
 }

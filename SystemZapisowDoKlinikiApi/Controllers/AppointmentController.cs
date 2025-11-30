@@ -24,7 +24,7 @@ public class AppointmentController : ControllerBase
         try
         {
             await _appointmentService.CreateAppointmentGuestAsync(appointmentRequest);
-            return CreatedAtAction(string.Empty, appointmentRequest);
+            return Created();
         }
         catch (Exception ex)
         {
@@ -54,7 +54,8 @@ public class AppointmentController : ControllerBase
 
     [HttpPost("user/book")]
     [Authorize(Roles = "Registered_user")]
-    public async Task<IActionResult> BookAppointment([FromBody] BookAppointmentRequestDTO bookAppointmentRequestDto)
+    public async Task<IActionResult> BookAppointmentForRegisteredUserAsync(
+        [FromBody] BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
         try
         {
@@ -64,7 +65,9 @@ public class AppointmentController : ControllerBase
                 return Unauthorized();
             }
 
-            var success = await _appointmentService.BookAppointmentAsync(int.Parse(userId), bookAppointmentRequestDto);
+            var success =
+                await _appointmentService.BookAppointmentForRegisteredUserAsync(int.Parse(userId),
+                    bookAppointmentRequestDto);
             if (success)
             {
                 return Ok("Appointment booked successfully.");
@@ -75,6 +78,33 @@ public class AppointmentController : ControllerBase
         catch (Exception ex)
         {
             return BadRequest($"Error booking appointment: {ex.Message}");
+        }
+    }
+
+    [HttpGet]
+    [Route("/api/DoctorAppointments")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> GetDoctorAppointments([FromQuery] string lang, [FromQuery] DateTime date)
+    {
+        try
+        {
+            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+            {
+                return Unauthorized();
+            }
+
+            var appointments = await _appointmentService.GetAppointmentsByDoctorIdAsync(int.Parse(userId), lang, date);
+            if (!appointments.Any())
+            {
+                return NotFound("No appointments found for the specified doctor.");
+            }
+
+            return Ok(appointments);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
 }

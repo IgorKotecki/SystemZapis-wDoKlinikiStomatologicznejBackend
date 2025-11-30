@@ -17,6 +17,8 @@ public partial class ClinicDbContext : DbContext
 
     public virtual DbSet<Appointment> Appointments { get; set; }
 
+    public virtual DbSet<AppointmentStatus> AppointmentStatuses { get; set; }
+
     public virtual DbSet<DaySchemeTimeBlock> DaySchemeTimeBlocks { get; set; }
 
     public virtual DbSet<Doctor> Doctors { get; set; }
@@ -25,7 +27,7 @@ public partial class ClinicDbContext : DbContext
 
     public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<Service?> Services { get; set; }
+    public virtual DbSet<Service> Services { get; set; }
 
     public virtual DbSet<ServiceDependency> ServiceDependencies { get; set; }
 
@@ -43,6 +45,7 @@ public partial class ClinicDbContext : DbContext
 
     public DbSet<ToothStatusCategoryTranslation> ToothStatusCategoryTranslations { get; set; }
     public virtual DbSet<ServiceCategory> ServiceCategory { get; set; }
+    public virtual DbSet<ToothName> ToothNames { get; set; }
 
     public virtual DbSet<User> Users { get; set; }
 
@@ -75,6 +78,8 @@ public partial class ClinicDbContext : DbContext
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.DoctorBlockId).HasColumnName("Doctor_block_id");
             entity.Property(e => e.UserId).HasColumnName("User_id");
+            entity.Property(e => e.AppointmentGroupId).HasColumnName("Appointment_Group_Id").HasMaxLength(40)
+                .IsRequired(false);
 
             entity.HasOne(d => d.DoctorBlock).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.DoctorBlockId)
@@ -119,6 +124,18 @@ public partial class ClinicDbContext : DbContext
                         j.IndexerProperty<int>("AppointmentId").HasColumnName("Appointment_id");
                         j.IndexerProperty<int>("ServicesId").HasColumnName("Services_id");
                     });
+
+            entity.HasOne(a => a.AppointmentStatus)
+                .WithMany()
+                .HasForeignKey(a => a.AppointmentStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<AppointmentStatus>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.NamePl).IsRequired().HasMaxLength(100);
+            entity.Property(s => s.NameEn).IsRequired().HasMaxLength(100);
         });
 
         modelBuilder.Entity<DaySchemeTimeBlock>(entity =>
@@ -272,6 +289,15 @@ public partial class ClinicDbContext : DbContext
                 .HasForeignKey(d => d.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_ServiceDependencies_Service");
+        });
+
+        modelBuilder.Entity<ToothName>(e =>
+        {
+            e.ToTable("ToothNames");
+            e.HasKey(t => t.Id);
+            e.Property(t => t.ToothNumber).IsRequired();
+            e.Property(t => t.NamePl).IsRequired();
+            e.Property(t => t.NameEn).IsRequired();
         });
 
         modelBuilder.Entity<ServicesTranslation>(entity =>
