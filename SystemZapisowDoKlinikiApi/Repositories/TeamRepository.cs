@@ -28,6 +28,7 @@ public class TeamRepository : ITeamRepository
                 Surname = u.Surname,
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
+                PhotoURL = u.PhotoURL,
                 SpecializationPl = u.Doctor != null ? u.Doctor.SpecializationPl : null,
                 SpecializationEn = u.Doctor != null ? u.Doctor.SpecializationEn : null,
                 RoleName = u.Roles != null ? u.Roles.Name : null

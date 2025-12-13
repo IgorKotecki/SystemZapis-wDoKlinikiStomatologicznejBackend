@@ -24,7 +24,8 @@ public partial class User
     public string? RefreshToken { get; set; }
 
     public DateTime? RefreshTokenExpDate { get; set; }
-
+    
+    public string? PhotoURL { get; set; }
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual Doctor? Doctor { get; set; }
@@ -32,4 +33,5 @@ public partial class User
     public virtual Role Roles { get; set; } = null!;
 
     public virtual ICollection<Tooth> Teeth { get; set; } = new List<Tooth>();
+    
 }

@@ -28,6 +28,7 @@ public class ServiceRepository : IServiceRepository
                 HighPrice = s.HighPrice,
                 MinTime = s.MinTime,
                 LanguageCode = lang,
+                PhotoUrl = s.PhotoUrl,
                 Name = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Name,
                 Description = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Description
             })

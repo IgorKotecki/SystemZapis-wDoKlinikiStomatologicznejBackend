@@ -9,6 +9,8 @@ public partial class Service
     public decimal? HighPrice { get; set; }
 
     public int MinTime { get; set; }
+    
+    public string? PhotoUrl { get; set; }
 
     public virtual ICollection<ServiceCategory> ServiceCategories { get; set; } = new List<ServiceCategory>();
 
