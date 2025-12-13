@@ -11,4 +11,5 @@ public interface IAppointmentRepository
     Task<bool> BookAppointmentForRegisteredUserAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto);
     Task CreateAddInformationAsync(AddInformationDto addInformationDto);
     Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang);
+    Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto);
 }

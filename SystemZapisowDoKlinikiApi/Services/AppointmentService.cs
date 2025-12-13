@@ -92,7 +92,7 @@ public class AppointmentService : IAppointmentService
 
     public async Task CreateAddInformationAsync(AddInformationDto addInformationDto)
     {
-        checkAddInformationDto(addInformationDto);
+        CheckAddInformationDto(addInformationDto);
         await _appointmentRepository.CreateAddInformationAsync(addInformationDto);
     }
 
@@ -101,7 +101,12 @@ public class AppointmentService : IAppointmentService
         return await _appointmentRepository.GetAddInformationAsync(lang);
     }
 
-    private void checkAddInformationDto(AddInformationDto addInformationDto)
+    public async Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto)
+    {
+        await _appointmentRepository.AddInfoToAppointmentAsync(addInfoToAppointmentDto);
+    }
+
+    private void CheckAddInformationDto(AddInformationDto addInformationDto)
     {
         if (addInformationDto == null)
         {

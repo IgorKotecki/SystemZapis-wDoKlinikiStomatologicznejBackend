@@ -295,4 +295,46 @@ public class AppointmentRepository : IAppointmentRepository
         }).ToList();
         return result;
     }
+
+    public async Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var appointments = await _context.Appointments
+                .Where(a => a.AppointmentGroupId == addInfoToAppointmentDto.Id)
+                .Include(a => a.AdditionalInformations)
+                .ToListAsync();
+            var addInformation = await _context.AdditionalInformations
+                .Where(ai => addInfoToAppointmentDto.AddInformationIds.Contains(ai.Id))
+                .ToListAsync();
+            if (appointments.IsNullOrEmpty())
+            {
+                throw new Exception("No appointments found for the provided appointment ID.");
+            }
+
+            if (addInformation.IsNullOrEmpty())
+            {
+                throw new Exception("No additional information found for the provided IDs.");
+            }
+
+            foreach (var appointment in appointments)
+            {
+                var existingInfo = appointment.AdditionalInformations
+                    .ToHashSet();
+
+                existingInfo.UnionWith(addInformation);
+
+
+                appointment.AdditionalInformations = existingInfo.ToList();
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }

@@ -131,4 +131,22 @@ public class AppointmentController : ControllerBase
     {
         return await _appointmentService.GetAddInformationAsync(lang);
     }
+
+    [HttpPut]
+    [Route("AddInfoToAppointment")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> AddInfoToAppointmentAsync(
+        [FromBody] AddInfoToAppointmentDto addInfoToAppointmentDto)
+    {
+        try
+        {
+            await _appointmentService.AddInfoToAppointmentAsync(addInfoToAppointmentDto);
+
+            return Ok("Information added to appointment successfully.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error adding information to appointment: {ex.Message}");
+        }
+    }
 }
