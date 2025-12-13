@@ -107,4 +107,28 @@ public class AppointmentController : ControllerBase
             return StatusCode(500, $"Internal server error: {ex.Message}");
         }
     }
+
+    [HttpPost]
+    [Route("createAddInformation")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> CreateAddInformationAsync([FromBody] AddInformationDto addInformationDto)
+    {
+        try
+        {
+            await _appointmentService.CreateAddInformationAsync(addInformationDto);
+            return Ok("Additional information added successfully.");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error adding information: {ex.Message}");
+        }
+    }
+
+    [HttpGet]
+    [Route("AddInfo")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync([FromQuery] string lang)
+    {
+        return await _appointmentService.GetAddInformationAsync(lang);
+    }
 }

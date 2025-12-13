@@ -1,4 +1,5 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.Controllers;
+using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 
@@ -87,6 +88,35 @@ public class AppointmentService : IAppointmentService
         BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
         return await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
+    }
+
+    public async Task CreateAddInformationAsync(AddInformationDto addInformationDto)
+    {
+        checkAddInformationDto(addInformationDto);
+        await _appointmentRepository.CreateAddInformationAsync(addInformationDto);
+    }
+
+    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
+    {
+        return await _appointmentRepository.GetAddInformationAsync(lang);
+    }
+
+    private void checkAddInformationDto(AddInformationDto addInformationDto)
+    {
+        if (addInformationDto == null)
+        {
+            throw new ArgumentNullException(nameof(addInformationDto), "AddInformationDto cannot be null.");
+        }
+
+        if (addInformationDto.BodyPl == null || addInformationDto.BodyPl.Trim() == "")
+        {
+            throw new ArgumentException("BodyPlan cannot be null or empty.", nameof(addInformationDto.BodyPl));
+        }
+
+        if (addInformationDto.BodyEn == null || addInformationDto.BodyEn.Trim() == "")
+        {
+            throw new ArgumentException("BodyEn cannot be null or empty.", nameof(addInformationDto.BodyEn));
+        }
     }
 
     private void CheckUserDataForAppointment(AppointmentRequest appointmentRequest, User user)

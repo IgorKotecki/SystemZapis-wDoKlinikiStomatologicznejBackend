@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
+using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 
@@ -271,5 +272,27 @@ public class AppointmentRepository : IAppointmentRepository
             await transaction.RollbackAsync();
             throw new Exception("Database Exception cannot book appointment", ex);
         }
+    }
+
+    public async Task CreateAddInformationAsync(AddInformationDto addInformationDto)
+    {
+        var addInformation = new AdditionalInformation
+        {
+            BodyEn = addInformationDto.BodyEn,
+            BodyPl = addInformationDto.BodyPl
+        };
+        _context.AdditionalInformations.Add(addInformation);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
+    {
+        var addInformations = await _context.AdditionalInformations.ToListAsync();
+        var result = addInformations.Select(ai => new AddInformationOutDto
+        {
+            Id = ai.Id,
+            Body = lang == "pl" ? ai.BodyPl : ai.BodyEn
+        }).ToList();
+        return result;
     }
 }
