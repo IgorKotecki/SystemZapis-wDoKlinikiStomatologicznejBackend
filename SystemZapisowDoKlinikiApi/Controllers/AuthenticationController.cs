@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -32,6 +32,11 @@ public class AuthenticationController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> RegisterUserAsync(RegisterRequest model)
     {
+        if (ModelState.IsValid == false)
+        {
+            return BadRequest();
+        }
+
         var hashedPasswordAndSalt = SecurityHelper.GetHashedPasswordAndSalt(model.Password);
 
         var us = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
@@ -50,7 +55,7 @@ public class AuthenticationController : ControllerBase
             Password = hashedPasswordAndSalt.Item1,
             Salt = hashedPasswordAndSalt.Item2,
             RefreshToken = SecurityHelper.GenerateRefreshToken(),
-            RefreshTokenExpDate = DateTime.Now.AddDays(1),
+            RefreshTokenExpDate = DateTime.UtcNow.AddDays(1),
             RolesId = 3 // Default role: Registered_User
         };
 
@@ -94,13 +99,13 @@ public class AuthenticationController : ControllerBase
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(10),
+            expires: DateTime.UtcNow.AddMinutes(1),
             signingCredentials: credentials
         );
-
+//Zmienione z 10 na 1 minuta do testow
         user.RefreshToken = SecurityHelper.GenerateRefreshToken();
-        user.RefreshTokenExpDate = DateTime.Now.AddDays(1);
-        //Console.WriteLine(user.RefreshToken);
+        user.RefreshTokenExpDate = DateTime.UtcNow.AddDays(1);
+        Console.WriteLine(user.RefreshToken);
         await _context.SaveChangesAsync();
 
         return Ok(new
@@ -117,20 +122,22 @@ public class AuthenticationController : ControllerBase
         var user = await _context.Users.Include(user => user.Roles)
             .FirstOrDefaultAsync(u => u.RefreshToken.Trim() == model.RefreshToken.Trim());
         Console.WriteLine($"RefreshToken z żądania: {model.RefreshToken}");
-        Console.WriteLine($"RefreshToken użytkownika: {user.RefreshToken}");
 
         if (user == null)
         {
-            throw new SecurityTokenExpiredException("Invalid refresh token");
+            throw new SecurityTokenExpiredException("UserNotFound");
         }
 
-        if (user.RefreshTokenExpDate < DateTime.Now)
+        Console.WriteLine($"RefreshToken użytkownika: {user.RefreshToken}");
+
+        if (user.RefreshTokenExpDate < DateTime.UtcNow)
         {
             throw new SecurityTokenExpiredException("Invalid refresh token");
         }
 
         var claims = new[]
         {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
             new Claim(ClaimTypes.Role, user.Roles.Name)
         };
@@ -142,12 +149,12 @@ public class AuthenticationController : ControllerBase
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(10),
+            expires: DateTime.UtcNow.AddMinutes(1),
             signingCredentials: creds
         );
 
         user.RefreshToken = SecurityHelper.GenerateRefreshToken();
-        user.RefreshTokenExpDate = DateTime.Now.AddDays(1);
+        user.RefreshTokenExpDate = DateTime.UtcNow.AddDays(1);
         await _context.SaveChangesAsync();
 
         return Ok(new
@@ -185,7 +192,7 @@ public class AuthenticationController : ControllerBase
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddMinutes(30),
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: creds
         );
 

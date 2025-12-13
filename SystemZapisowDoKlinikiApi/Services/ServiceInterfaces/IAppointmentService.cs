@@ -1,4 +1,5 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Controllers;
+using SystemZapisowDoKlinikiApi.DTO;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
@@ -8,4 +9,6 @@ public interface IAppointmentService
     public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang);
     Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, string lang, DateTime date);
     Task<bool> BookAppointmentForRegisteredUserAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto);
+    Task CreateAddInformationAsync(AddInformationDto addInformationDto);
+    Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang);
 }
