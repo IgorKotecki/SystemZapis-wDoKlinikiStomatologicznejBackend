@@ -38,7 +38,47 @@ public class ServiceRepository : IServiceRepository
 
     public async Task<Service?> GetServiceByIdAsync(int serviceId)
     {
-        return await _context.Services.FirstOrDefaultAsync(s => s.Id == serviceId);
+        return await _context.Services
+            .FirstOrDefaultAsync(s => s.Id == serviceId);
+    }
+
+    public async Task<ServiceEditDTO?> GetServiceEditDTOByIdAsync(int serviceId)
+    {
+        return await _context.Services
+            .Where(s => s.Id == serviceId)
+            .Select(s => new ServiceEditDTO
+            {
+                Id = s.Id,
+                LowPrice = s.LowPrice,
+                HighPrice = s.HighPrice,
+                MinTime = s.MinTime,
+
+                NamePl = s.ServicesTranslations
+                    .Where(t => t.LanguageCode == "pl")
+                    .Select(t => t.Name)
+                    .FirstOrDefault() ?? "",
+
+                DescriptionPl = s.ServicesTranslations
+                    .Where(t => t.LanguageCode == "pl")
+                    .Select(t => t.Description)
+                    .FirstOrDefault() ?? "",
+
+                NameEn = s.ServicesTranslations
+                    .Where(t => t.LanguageCode == "en")
+                    .Select(t => t.Name)
+                    .FirstOrDefault() ?? "",
+
+                DescriptionEn = s.ServicesTranslations
+                    .Where(t => t.LanguageCode == "en")
+                    .Select(t => t.Description)
+                    .FirstOrDefault() ?? "",
+
+                ServiceCategoryIds = s.ServiceCategories
+                    .Select(sc => sc.Id)
+                    .ToList()
+            })
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
     }
 
     public async Task AddServiceAsync(AddServiceDto addServiceDto)
@@ -185,6 +225,70 @@ public class ServiceRepository : IServiceRepository
             await transaction.RollbackAsync();
             throw new Exception("Failed to delete service", e);
         }
+    }
+
+    public async Task EditServiceAsync(int serviceId, ServiceEditDTO serviceEditDto)
+    {
+        var service = await _context.Services
+            .Include(s => s.ServicesTranslations)
+            .Include(s => s.ServiceCategories)
+            .FirstOrDefaultAsync(s => s.Id == serviceId);
+
+        if (service == null)
+            throw new ArgumentException("Service not found");
+        service.LowPrice = serviceEditDto.LowPrice;
+        service.HighPrice = serviceEditDto.HighPrice;
+        service.MinTime = serviceEditDto.MinTime;
+        
+        UpdateTranslation(service, "pl", serviceEditDto.NamePl, serviceEditDto.DescriptionPl);
+        UpdateTranslation(service, "en", serviceEditDto.NameEn, serviceEditDto.DescriptionEn);
+        
+        service.ServiceCategories.Clear();
+
+        if (serviceEditDto.ServiceCategoryIds.Any())
+        {
+            var categories = await _context.ServiceCategory
+                .Where(c => serviceEditDto.ServiceCategoryIds.Contains(c.Id))
+                .ToListAsync();
+
+            foreach (var category in categories)
+            {
+                service.ServiceCategories.Add(category);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+    }
+
+    private static void UpdateTranslation(
+        Service service,
+        string lang,
+        string name,
+        string description)
+    {
+        var translation = service.ServicesTranslations
+            .FirstOrDefault(t => t.LanguageCode == lang);
+
+        if (translation == null)
+        {
+            service.ServicesTranslations.Add(new ServicesTranslation
+            {
+                LanguageCode = lang,
+                Name = name,
+                Description = description
+            });
+        }
+        else
+        {
+            translation.Name = name;
+            translation.Description = description;
+        }
+    }
+
+
+    public async Task<List<ServiceCategory>> GetAllServiceCategories()
+    {
+        return await _context.ServiceCategory.AsNoTracking().ToListAsync();
     }
 
     [Authorize(Roles = "Receptionist")]

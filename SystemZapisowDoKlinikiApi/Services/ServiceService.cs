@@ -1,4 +1,6 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using Microsoft.EntityFrameworkCore;
+using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 
 namespace SystemZapisowDoKlinikiApi.Services;
@@ -6,10 +8,12 @@ namespace SystemZapisowDoKlinikiApi.Services;
 public class ServiceService : IServiceService
 {
     private readonly IServiceRepository _serviceRepository;
+    private readonly ClinicDbContext _context;
 
-    public ServiceService(IServiceRepository serviceRepository)
+    public ServiceService(IServiceRepository serviceRepository, ClinicDbContext context)
     {
         _serviceRepository = serviceRepository;
+        _context = context;
     }
 
     public async Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang)
@@ -52,8 +56,40 @@ public class ServiceService : IServiceService
         return _serviceRepository.GetAllServicesAsync(lang);
     }
 
+    public async Task<Service?> GetServiceByIdAsync(int serviceId)
+    {
+        return await _serviceRepository.GetServiceByIdAsync(serviceId);
+    }
+    
+    public async Task<ServiceEditDTO?> GetServiceForEditAsync(int serviceId)
+    {
+        return await _serviceRepository.GetServiceEditDTOByIdAsync(serviceId);
+    }
+
+
+
     public Task DeleteServiceAsync(int serviceId)
     {
         return _serviceRepository.DeleteServiceAsync(serviceId);
+    }
+
+    public Task EditServiceAsync(int serviceId, ServiceEditDTO serviceEditDto)
+    {
+        if (serviceEditDto == null)
+            throw new ArgumentNullException(nameof(serviceEditDto));
+
+        return _serviceRepository.EditServiceAsync(serviceId, serviceEditDto);
+    }
+
+
+    public async Task<List<ServiceCategoryDTO>> GetAllServiceCategories()
+    {
+        var categories = await _serviceRepository.GetAllServiceCategories();
+        return categories.Select(c => new ServiceCategoryDTO
+        {
+            Id = c.Id,
+            NamePl = c.NamePl,
+            NameEn = c.NameEn
+        }).ToList();
     }
 }
