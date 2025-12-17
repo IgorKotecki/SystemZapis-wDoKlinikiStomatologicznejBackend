@@ -10,6 +10,8 @@ public partial class Service
 
     public int MinTime { get; set; }
 
+    public string? PhotoUrl { get; set; }
+
     public virtual ICollection<ServiceCategory> ServiceCategories { get; set; } = new List<ServiceCategory>();
 
     public virtual ICollection<ServiceDependency> ServiceDependencyRequiredServices { get; set; } =

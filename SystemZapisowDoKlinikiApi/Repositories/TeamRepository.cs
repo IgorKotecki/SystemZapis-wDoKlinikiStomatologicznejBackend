@@ -7,12 +7,12 @@ namespace SystemZapisowDoKlinikiApi.Repositories;
 public class TeamRepository : ITeamRepository
 {
     private readonly ClinicDbContext _context;
-    
+
     public TeamRepository(ClinicDbContext context)
     {
         _context = context;
     }
-    
+
     public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
     {
         var staffRoles = new int[] { 1, 2 };
@@ -28,6 +28,7 @@ public class TeamRepository : ITeamRepository
                 Surname = u.Surname,
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
+                PhotoURL = u.PhotoURL,
                 SpecializationPl = u.Doctor != null ? u.Doctor.SpecializationPl : null,
                 SpecializationEn = u.Doctor != null ? u.Doctor.SpecializationEn : null,
                 RoleName = u.Roles != null ? u.Roles.Name : null

@@ -1,4 +1,4 @@
-﻿using SystemZapisowDoKlinikiApi.Controllers;
+using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.DTO;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;

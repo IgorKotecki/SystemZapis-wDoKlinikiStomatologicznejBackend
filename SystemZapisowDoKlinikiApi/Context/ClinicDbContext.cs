@@ -244,6 +244,10 @@ public partial class ClinicDbContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("low_price").IsRequired(false);
             entity.Property(e => e.MinTime).HasColumnName("min_time");
+            entity.Property(e => e.PhotoUrl)
+                .HasMaxLength(255)
+                .HasColumnName("photo_url")
+                .IsRequired(false);
 
             entity.HasMany(e => e.ServiceCategories).WithMany(s => s.Services)
                 .UsingEntity<Dictionary<string, object>>(
@@ -455,6 +459,10 @@ public partial class ClinicDbContext : DbContext
             entity.Property(e => e.Surname)
                 .HasMaxLength(100)
                 .HasColumnName("surname");
+            entity.Property(e => e.PhotoURL)
+                .HasMaxLength(255)
+                .HasColumnName("photo_url")
+                .IsRequired(false);
 
             entity.HasOne(d => d.Roles).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RolesId)

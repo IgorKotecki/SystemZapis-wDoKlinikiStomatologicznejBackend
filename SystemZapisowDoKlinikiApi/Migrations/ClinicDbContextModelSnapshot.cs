@@ -316,6 +316,11 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                         .HasColumnType("int")
                         .HasColumnName("min_time");
 
+                    b.Property<string>("PhotoUrl")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("photo_url");
+
                     b.HasKey("Id")
                         .HasName("Services_pk");
 
@@ -624,6 +629,11 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasColumnName("phone_number");
+
+                    b.Property<string>("PhotoURL")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasColumnName("photo_url");
 
                     b.Property<string>("RefreshToken")
                         .HasMaxLength(512)

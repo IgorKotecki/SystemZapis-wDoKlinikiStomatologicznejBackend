@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace SystemZapisowDoKlinikiApi.Models;
+﻿namespace SystemZapisowDoKlinikiApi.Models;
 
 public partial class User
 {
@@ -25,6 +22,7 @@ public partial class User
 
     public DateTime? RefreshTokenExpDate { get; set; }
 
+    public string? PhotoURL { get; set; }
     public virtual ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
 
     public virtual Doctor? Doctor { get; set; }

@@ -1,5 +1,4 @@
-﻿using Microsoft.IdentityModel.Tokens;
-using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Repositories;
 
 namespace SystemZapisowDoKlinikiApi.Services;
@@ -7,18 +6,24 @@ namespace SystemZapisowDoKlinikiApi.Services;
 public class TeamService : ITeamService
 {
     private readonly ITeamRepository _teamRepository;
+    private readonly string _cloudName;
 
-    public TeamService(ITeamRepository teamRepository)
+    public TeamService(ITeamRepository teamRepository, IConfiguration configuration)
     {
         _teamRepository = teamRepository;
+        _cloudName = configuration["Cloudinary:CloudName"];
     }
 
     public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
     {
         var members = await _teamRepository.GetAllTeamMembersAsync();
-        if (members.IsNullOrEmpty())
+        foreach (var member in members)
         {
-            throw new KeyNotFoundException("No team members found.");
+            if (!string.IsNullOrEmpty(member.PhotoURL))
+            {
+                member.PhotoURL =
+                    $"https://res.cloudinary.com/{_cloudName}/image/upload/q_auto,f_auto/{member.PhotoURL}.jpg";
+            }
         }
 
         return members;

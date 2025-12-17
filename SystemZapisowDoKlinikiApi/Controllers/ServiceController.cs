@@ -63,4 +63,51 @@ public class ServiceController : ControllerBase
 
         return Ok();
     }
+
+    [HttpPut("editService/{serviceId}")]
+    public async Task<IActionResult> EditServiceAsync([FromRoute] int serviceId,
+        [FromBody] ServiceEditDTO serviceEditDto)
+    {
+        try
+        {
+            await _serviceService.EditServiceAsync(serviceId, serviceEditDto);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return BadRequest(e.Message);
+        }
+    }
+
+    [HttpGet("serviceCategories")]
+    public async Task<IActionResult> GetAllServiceCategories()
+    {
+        var categories = await _serviceService.GetAllServiceCategories();
+        return Ok(categories);
+    }
+
+    [HttpGet("{serviceId}")]
+    public async Task<IActionResult> GetServiceById(int serviceId)
+    {
+        var service = await _serviceService.GetServiceByIdAsync(serviceId);
+
+        if (service == null)
+        {
+            return NotFound($"Service with id = {serviceId} not found.");
+        }
+
+        return Ok(service);
+    }
+
+    [HttpGet("edit/{serviceId}")]
+    public async Task<IActionResult> GetServiceForEdit(int serviceId)
+    {
+        var service = await _serviceService.GetServiceForEditAsync(serviceId);
+
+        if (service == null)
+            return NotFound();
+
+        return Ok(service);
+    }
 }
