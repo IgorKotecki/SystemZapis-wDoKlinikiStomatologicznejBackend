@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Services;
@@ -42,5 +43,16 @@ public class UserController : ControllerBase
         _logger.LogInformation("Updated user with id: {UserId}", id);
 
         return Ok(updated);
+    }
+
+    [HttpGet("all-users")]
+    [Authorize(Roles = "Admin,Receptionist")]
+    public async Task<IActionResult> GetAllUsers()
+    {
+        var users = await _userService.GetAllUsersAsync();
+
+        _logger.LogInformation("Retrieved all users.");
+
+        return Ok(users);
     }
 }

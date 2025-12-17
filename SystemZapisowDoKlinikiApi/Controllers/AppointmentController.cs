@@ -65,6 +65,22 @@ public class AppointmentController : ControllerBase
         return Created();
     }
 
+    [HttpPost("receptionist/appointment")]
+    [Authorize(Roles = "Receptionist,Admin")]
+    public async Task<IActionResult> BookAppointmentForRegisteredUserByReceptionistAsync(
+        [FromBody] BookAppointmentRequestWithUserIdDto bookAppointmentRequestByReceptionistDto)
+    {
+        _logger.LogInformation(
+            "Booking appointment for registered user with id: {userId} by receptionist/admin",
+            bookAppointmentRequestByReceptionistDto.UserId);
+
+        await _appointmentService.BookAppointmentForRegisteredUserAsync(
+            bookAppointmentRequestByReceptionistDto.UserId,
+            bookAppointmentRequestByReceptionistDto.BookAppointmentRequestDto);
+
+        return Created();
+    }
+
     [HttpGet("doctor/appointments")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> GetDoctorAppointments([FromQuery] string lang, [FromQuery] DateTime date)
@@ -81,6 +97,19 @@ public class AppointmentController : ControllerBase
             userId, date, lang);
 
         var appointments = await _appointmentService.GetAppointmentsByDoctorIdAsync(int.Parse(userId), lang, date);
+
+        return Ok(appointments);
+    }
+
+    [HttpGet("receptionist/appointments")]
+    //[Authorize(Roles = "Receptionist,Admin")]
+    public async Task<IActionResult> GetAppointmentsForReceptionist([FromQuery] string lang, [FromQuery] DateTime date)
+    {
+        _logger.LogInformation(
+            "Getting appointments for receptionist/admin for date: {Date}, with language preference: {Lang}",
+            date, lang);
+
+        var appointments = await _appointmentService.GetAppointmentsForReceptionistAsync(lang, date);
 
         return Ok(appointments);
     }

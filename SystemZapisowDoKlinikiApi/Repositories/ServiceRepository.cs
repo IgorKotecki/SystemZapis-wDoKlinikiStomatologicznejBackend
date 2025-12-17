@@ -291,7 +291,24 @@ public class ServiceRepository : IServiceRepository
         return await _context.ServiceCategory.AsNoTracking().ToListAsync();
     }
 
-    [Authorize(Roles = "Receptionist")]
+    public async Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang)
+    {
+        return await _context.Services
+            .Select(s => new ServiceDTO()
+            {
+                Id = s.Id,
+                LowPrice = s.LowPrice,
+                HighPrice = s.HighPrice,
+                MinTime = s.MinTime,
+                LanguageCode = lang,
+                PhotoUrl = s.PhotoUrl,
+                Name = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Name,
+                Description = s.ServicesTranslations.FirstOrDefault(st => st.LanguageCode == lang)!.Description
+            })
+            .OrderBy(sdto => sdto.Name)
+            .ToListAsync();
+    }
+
     public async Task<ICollection<Service?>> GetAllServicesAsync()
     {
         return await _context.Services.ToListAsync();

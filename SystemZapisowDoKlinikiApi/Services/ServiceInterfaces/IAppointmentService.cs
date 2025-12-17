@@ -13,4 +13,5 @@ public interface IAppointmentService
     Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang);
     Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto);
     Task UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto updateAppointmentStatusDto);
+    Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(string lang, DateTime date);
 }

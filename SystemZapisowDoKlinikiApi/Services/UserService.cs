@@ -38,7 +38,7 @@ public class UserService : IUserService
     {
         return _userRepository.GetUserByIdAsync(id);
     }
-    
+
     public async Task<UserDTO?> UpdateUserAsync(int id, UserUpdateDTO dto)
     {
         var user = await _userRepository.GetByIdAsync(id);
@@ -62,5 +62,10 @@ public class UserService : IUserService
             PhoneNumber = user.PhoneNumber,
             RoleName = user.Roles?.Name ?? ""
         };
+    }
+
+    public async Task<ICollection<UserDTO>> GetAllUsersAsync()
+    {
+        return await _userRepository.GetAllUsersAsync();
     }
 }

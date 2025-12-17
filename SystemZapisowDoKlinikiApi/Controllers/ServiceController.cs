@@ -42,6 +42,17 @@ public class ServiceController : ControllerBase
         return Ok();
     }
 
+    [HttpGet("receptionist-services")]
+    [Authorize(Roles = "Receptionist,Admin")]
+    public async Task<ActionResult<ICollection<ServiceDTO>>> GetAllServicesForReceptionistAsync([FromQuery] string lang)
+    {
+        var services = await _serviceService.GetAllServicesForReceptionistAsync(lang);
+
+        _logger.LogInformation("Retrieved all services for receptionist with language preference: {Lang}", lang);
+
+        return Ok(services);
+    }
+
     [HttpGet("services")]
     public async Task<IActionResult> GetAllServicesAsync([FromQuery] string lang)
     {

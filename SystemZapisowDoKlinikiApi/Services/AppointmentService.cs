@@ -122,6 +122,20 @@ public class AppointmentService : IAppointmentService
         await _appointmentRepository.UpdateAppointmentStatusAsync(updateAppointmentStatusDto);
     }
 
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(string lang, DateTime date)
+    {
+        var mondayDate = GetMonday(date);
+
+        var appointments = await _appointmentRepository.GetAppointmentsForReceptionistAsync(mondayDate, lang);
+
+        if (appointments.IsNullOrEmpty())
+        {
+            throw new KeyNotFoundException($"No appointments found for date {date.ToShortDateString()}.");
+        }
+
+        return appointments;
+    }
+
     private void CheckAddInformationDto(AddInformationDto addInformationDto)
     {
         if (addInformationDto == null)

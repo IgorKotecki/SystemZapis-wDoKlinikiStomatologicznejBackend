@@ -10,4 +10,5 @@ public interface IUserRepository
     public Task<UserDTO?> GetUserByIdAsync(int id);
     public Task<User?> GetByIdAsync(int id);
     public Task UpdateUserAsync(User user);
+    Task<ICollection<UserDTO>> GetAllUsersAsync();
 }

@@ -96,4 +96,9 @@ public class ServiceService : IServiceService
             NameEn = c.NameEn
         }).ToList();
     }
+
+    public async Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang)
+    {
+        return await _serviceRepository.GetAllServicesForReceptionistAsync(lang);
+    }
 }
