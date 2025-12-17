@@ -1,4 +1,5 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using Microsoft.IdentityModel.Tokens;
+using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Repositories;
 
 namespace SystemZapisowDoKlinikiApi.Services;
@@ -44,12 +45,19 @@ public class ServiceService : IServiceService
         await _serviceRepository.AddServiceAsync(addServiceDto);
     }
 
-    public Task<AllServicesDto> GerAllServicesAsync(string lang)
+    public async Task<AllServicesDto> GerAllServicesAsync(string lang)
     {
         if (string.IsNullOrEmpty(lang))
             lang = "pl";
 
-        return _serviceRepository.GetAllServicesAsync(lang);
+        var services = await _serviceRepository.GetAllServicesAsync(lang);
+
+        if (services.ServicesByCategory.IsNullOrEmpty())
+        {
+            throw new KeyNotFoundException("No services found.");
+        }
+
+        return services;
     }
 
     public Task DeleteServiceAsync(int serviceId)

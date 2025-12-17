@@ -1,4 +1,5 @@
-﻿using SystemZapisowDoKlinikiApi.Controllers;
+﻿using Microsoft.IdentityModel.Tokens;
+using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
@@ -26,22 +27,6 @@ public class AppointmentService : IAppointmentService
             throw new ArgumentNullException(nameof(appointmentRequest), "Appointment request cannot be null.");
         }
 
-        foreach (var id in appointmentRequest.DoctorBlockId)
-        {
-            var timeBlock = await _timeBlockService.GetTimeBlockByDoctorBlockIdAsync(id);
-            if (timeBlock == null)
-            {
-                throw new ArgumentException($"Time block with ID {id} does not exist.",
-                    nameof(appointmentRequest.DoctorBlockId));
-            }
-
-            if (timeBlock.TimeStart < DateTime.Now)
-            {
-                throw new ArgumentException($"Time block with ID {id} is in the past.",
-                    nameof(appointmentRequest.DoctorBlockId));
-            }
-        }
-
         var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
         var userId = 0;
         if (user == null)
@@ -62,14 +47,21 @@ public class AppointmentService : IAppointmentService
         await _appointmentRepository.CreateAppointmentGuestAsync(appointmentRequest, userId);
     }
 
-    public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang)
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang)
     {
         if (userId <= 0)
         {
             throw new ArgumentException("User ID must be a positive integer.", nameof(userId));
         }
 
-        return _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang);
+        var appointments = await _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang);
+
+        if (appointments.IsNullOrEmpty())
+        {
+            throw new KeyNotFoundException($"No appointments found for user with ID {userId}.");
+        }
+
+        return appointments;
     }
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, string lang,
@@ -81,13 +73,21 @@ public class AppointmentService : IAppointmentService
         }
 
         var mondayDate = GetMonday(date);
-        return await _appointmentRepository.GetAppointmentsByDoctorIdAsync(doctorId, mondayDate, lang);
+
+        var appointments = await _appointmentRepository.GetAppointmentsByDoctorIdAsync(doctorId, mondayDate, lang);
+
+        if (appointments.IsNullOrEmpty())
+        {
+            throw new KeyNotFoundException($"No appointments found for doctor with ID {doctorId}.");
+        }
+
+        return appointments;
     }
 
-    public async Task<bool> BookAppointmentForRegisteredUserAsync(int userId,
+    public async Task BookAppointmentForRegisteredUserAsync(int userId,
         BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
-        return await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
+        await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
     }
 
     public async Task CreateAddInformationAsync(AddInformationDto addInformationDto)
@@ -104,6 +104,22 @@ public class AppointmentService : IAppointmentService
     public async Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto)
     {
         await _appointmentRepository.AddInfoToAppointmentAsync(addInfoToAppointmentDto);
+    }
+
+    public async Task UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto updateAppointmentStatusDto)
+    {
+        if (updateAppointmentStatusDto == null)
+        {
+            throw new ArgumentNullException(nameof(updateAppointmentStatusDto),
+                "UpdateAppointmentStatusDto cannot be null.");
+        }
+
+        if (updateAppointmentStatusDto.StatusId <= 0 || updateAppointmentStatusDto.StatusId > 4)
+        {
+            throw new ArgumentException("StatusId don't mach any status", nameof(updateAppointmentStatusDto.StatusId));
+        }
+
+        await _appointmentRepository.UpdateAppointmentStatusAsync(updateAppointmentStatusDto);
     }
 
     private void CheckAddInformationDto(AddInformationDto addInformationDto)

@@ -21,35 +21,72 @@ public class AppointmentRepository : IAppointmentRepository
 
     public async Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest, int userId)
     {
-        await using IDbContextTransaction transaction = await _context.Database.BeginTransactionAsync();
+        await using IDbContextTransaction transaction =
+            await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
         try
         {
-            foreach (var doctorBlock in appointmentRequest.DoctorBlockId)
+            var duration = 0;
+            var guid = Guid.NewGuid();
+            var services = await _context.Services
+                .Where(s => appointmentRequest.ServicesIds.Contains(s.Id))
+                .ToListAsync();
+            if (services.IsNullOrEmpty())
             {
-                var appointment = new Appointment
-                {
-                    DoctorBlockId = doctorBlock,
-                    UserId = userId,
-                    Services = new List<Service>()
-                };
-                var service = await _serviceRepository.GetServiceByIdAsync(appointmentRequest.Service.Id);
+                throw new Exception("No services found for the provided IDs.");
+            }
+
+            foreach (var servicesId in appointmentRequest.ServicesIds)
+            {
+                var service = services.FirstOrDefault(s => s.Id == servicesId);
                 if (service == null)
                 {
-                    throw new ArgumentException("Service not found.");
+                    throw new Exception($"Service with Id {servicesId} not found.");
                 }
 
-                appointment.Services.Add(service);
-                _context.Appointments.Add(appointment);
+                for (int i = 1; i <= service.MinTime; i++)
+                {
+                    if (duration > appointmentRequest.Duration)
+                    {
+                        throw new Exception("Somthing went wrong with booking");
+                    }
+
+                    var time = appointmentRequest.StartTime.AddMinutes(30 * duration);
+                    var doctorBlockId = await _context.DoctorBlocks
+                        .Where(db =>
+                            db.TimeBlock.TimeStart == time && db.DoctorUserId == appointmentRequest.DoctorId)
+                        .Select(db => db.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (doctorBlockId == 0)
+                        throw new Exception($"No available doctor block for time {time}");
+
+                    var isOccupied = await _context.Appointments
+                        .AnyAsync(a => a.DoctorBlockId == doctorBlockId);
+
+                    if (isOccupied)
+                        throw new Exception($"Doctor block for time {time} is already booked.");
+
+                    var appointment = new Appointment()
+                    {
+                        UserId = userId,
+                        DoctorBlockId = doctorBlockId,
+                        AppointmentGroupId = guid.ToString(),
+                        AppointmentStatusId = 1,
+                        Services = new List<Service>()
+                    };
+                    duration++;
+                    appointment.Services.Add(service);
+                    await _context.Appointments.AddAsync(appointment);
+                }
             }
 
             await _context.SaveChangesAsync();
-
             await transaction.CommitAsync();
         }
-        catch
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw;
+            throw new Exception("Database Exception cannot book appointment", ex);
         }
     }
 
@@ -201,7 +238,7 @@ public class AppointmentRepository : IAppointmentRepository
         return result;
     }
 
-    public async Task<bool> BookAppointmentForRegisteredUserAsync(int userId,
+    public async Task BookAppointmentForRegisteredUserAsync(int userId,
         BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
         await using IDbContextTransaction transaction =
@@ -265,7 +302,6 @@ public class AppointmentRepository : IAppointmentRepository
 
             await _context.SaveChangesAsync();
             await transaction.CommitAsync();
-            return true;
         }
         catch (Exception ex)
         {
@@ -332,6 +368,35 @@ public class AppointmentRepository : IAppointmentRepository
             await transaction.CommitAsync();
         }
         catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto updateAppointmentStatusDto)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var appointments = await _context.Appointments
+                .Where(a => a.AppointmentGroupId == updateAppointmentStatusDto.AppointmentId)
+                .ToListAsync();
+
+            if (appointments.IsNullOrEmpty())
+            {
+                throw new Exception("No appointments found for the provided appointment group ID.");
+            }
+
+            foreach (var appointment in appointments)
+            {
+                appointment.AppointmentStatusId = updateAppointmentStatusDto.StatusId;
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception e)
         {
             await transaction.RollbackAsync();
             throw;

@@ -11,142 +11,118 @@ namespace SystemZapisowDoKlinikiApi.Controllers;
 public class AppointmentController : ControllerBase
 {
     private readonly IAppointmentService _appointmentService;
+    private readonly ILogger<AppointmentController> _logger;
 
-    public AppointmentController(IAppointmentService appointmentService)
+    public AppointmentController(IAppointmentService appointmentService, ILogger<AppointmentController> logger)
     {
         _appointmentService = appointmentService;
+        _logger = logger;
     }
 
-    [HttpPost]
-    [Route("guest")]
-    public async Task<IActionResult> PostGuestAppointmentAsync([FromBody] AppointmentRequest appointmentRequest)
+    [HttpPost("guest/appointment")]
+    public async Task<IActionResult> BookGuestAppointmentAsync([FromBody] AppointmentRequest appointmentRequest)
     {
-        try
-        {
-            await _appointmentService.CreateAppointmentGuestAsync(appointmentRequest);
-            return Created();
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
+        await _appointmentService.CreateAppointmentGuestAsync(appointmentRequest);
+        return Created();
     }
 
-    [HttpGet]
-    [Route("user/{userId}")]
-    public async Task<IActionResult> GetAppointmentsByUserIdAsync(int userId, [FromQuery] string lang)
+    [HttpGet("registered/appointments")]
+    [Authorize(Roles = "Registered_user,Doctor,Admin")]
+    public async Task<IActionResult> GetAppointmentsByUserIdAsync([FromQuery] string lang)
     {
-        try
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
         {
-            var appointments = await _appointmentService.GetAppointmentsByUserIdAsync(userId, lang);
-            if (!appointments.Any())
-            {
-                return NotFound("No appointments found for the specified user.");
-            }
+            return Unauthorized();
+        }
 
-            return Ok(appointments);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
-        }
+        _logger.LogInformation("Getting appointments for user with id: {userId}, with language preference: {Lang}",
+            userId, lang);
+
+        var appointments = await _appointmentService.GetAppointmentsByUserIdAsync(int.Parse(userId), lang);
+
+        return Ok(appointments);
     }
 
-    [HttpPost("user/book")]
+    [HttpPost("registered/appointment")]
     [Authorize(Roles = "Registered_user")]
     public async Task<IActionResult> BookAppointmentForRegisteredUserAsync(
         [FromBody] BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
-        try
-        {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var success =
-                await _appointmentService.BookAppointmentForRegisteredUserAsync(int.Parse(userId),
-                    bookAppointmentRequestDto);
-            if (success)
-            {
-                return Ok("Appointment booked successfully.");
-            }
-
-            return BadRequest("Failed to book appointment.");
-        }
-        catch (Exception ex)
+        if (userId == null)
         {
-            return BadRequest($"Error booking appointment: {ex.Message}");
+            return Unauthorized();
         }
+
+        _logger.LogInformation("Booking appointment for registered user with id: {userId}", userId);
+
+        await _appointmentService.BookAppointmentForRegisteredUserAsync(
+            int.Parse(userId),
+            bookAppointmentRequestDto);
+
+        return Created();
     }
 
-    [HttpGet]
-    [Route("/api/DoctorAppointments")]
+    [HttpGet("doctor/appointments")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> GetDoctorAppointments([FromQuery] string lang, [FromQuery] DateTime date)
     {
-        try
-        {
-            var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
-            {
-                return Unauthorized();
-            }
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
-            var appointments = await _appointmentService.GetAppointmentsByDoctorIdAsync(int.Parse(userId), lang, date);
-            if (!appointments.Any())
-            {
-                return NotFound("No appointments found for the specified doctor.");
-            }
-
-            return Ok(appointments);
-        }
-        catch (Exception ex)
+        if (userId == null)
         {
-            return StatusCode(500, $"Internal server error: {ex.Message}");
+            return Unauthorized();
         }
+
+        _logger.LogInformation(
+            "Getting appointments for doctor with id: {userId}, for date: {Date}, with language preference: {Lang}",
+            userId, date, lang);
+
+        var appointments = await _appointmentService.GetAppointmentsByDoctorIdAsync(int.Parse(userId), lang, date);
+
+        return Ok(appointments);
     }
 
-    [HttpPost]
-    [Route("createAddInformation")]
+    [HttpPost("doctor/additional-information")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> CreateAddInformationAsync([FromBody] AddInformationDto addInformationDto)
     {
-        try
-        {
-            await _appointmentService.CreateAddInformationAsync(addInformationDto);
-            return Ok("Additional information added successfully.");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest($"Error adding information: {ex.Message}");
-        }
+        _logger.LogInformation("Creating additional information entry by doctor.");
+
+        await _appointmentService.CreateAddInformationAsync(addInformationDto);
+        return Ok("Additional information added successfully.");
     }
 
-    [HttpGet]
-    [Route("AddInfo")]
+    [HttpGet("doctor/additional-information")]
     [Authorize(Roles = "Doctor")]
     public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync([FromQuery] string lang)
     {
+        _logger.LogInformation("Retrieving additional information entries for doctor with language preference: {Lang}",
+            lang);
         return await _appointmentService.GetAddInformationAsync(lang);
     }
 
-    [HttpPut]
-    [Route("AddInfoToAppointment")]
+    [HttpPut("doctor/additional-information")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> AddInfoToAppointmentAsync(
         [FromBody] AddInfoToAppointmentDto addInfoToAppointmentDto)
     {
-        try
-        {
-            await _appointmentService.AddInfoToAppointmentAsync(addInfoToAppointmentDto);
+        _logger.LogInformation("Adding additional information to appointment with id: {AppointmentId}",
+            addInfoToAppointmentDto.Id);
+        await _appointmentService.AddInfoToAppointmentAsync(addInfoToAppointmentDto);
+        return Ok("Information added to appointment successfully.");
+    }
 
-            return Ok("Information added to appointment successfully.");
-        }
-        catch (Exception ex)
-        {
-            return BadRequest($"Error adding information to appointment: {ex.Message}");
-        }
+    [HttpPut("appointment-status")]
+    [Authorize(Roles = "Doctor,Admin,Receptionist")]
+    public async Task<IActionResult> UpdateAppointmentStatusAsync(
+        [FromBody] UpdateAppointmentStatusDto updateAppointmentStatusDto)
+    {
+        _logger.LogInformation("Updating status : {statusId} for appointment with id: {AppointmentId}",
+            updateAppointmentStatusDto.StatusId, updateAppointmentStatusDto.AppointmentId);
+        await _appointmentService.UpdateAppointmentStatusAsync(updateAppointmentStatusDto);
+        return Ok("Appointment status updated successfully.");
     }
 }

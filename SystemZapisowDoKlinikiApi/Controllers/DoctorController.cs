@@ -12,19 +12,21 @@ public class DoctorController : ControllerBase
 {
     private readonly IDoctorDaySchemeService _doctorDaySchemeService;
     private readonly IDoctorService _doctorService;
+    private readonly ILogger<DoctorController> _logger;
 
-    public DoctorController(IDoctorDaySchemeService doctorDaySchemeService, IDoctorService doctorService)
+    public DoctorController(IDoctorDaySchemeService doctorDaySchemeService, IDoctorService doctorService,
+        ILogger<DoctorController> logger)
     {
         _doctorDaySchemeService = doctorDaySchemeService;
         _doctorService = doctorService;
+        _logger = logger;
     }
 
     [HttpPut]
-    [Route("weekSchemeUpdate")]
+    [Route("week-scheme")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> UpdateDoctorDaySchemeAsync([FromBody] WeekSchemeDTO weekSchemeDto)
     {
-        Console.WriteLine("Jestem");
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)
         {
@@ -32,11 +34,14 @@ public class DoctorController : ControllerBase
         }
 
         await _doctorDaySchemeService.UpdateDoctorWeekSchemeAsync(int.Parse(userId), weekSchemeDto);
+
+        _logger.LogInformation("Doctor with id: {userId} updated their week scheme.", userId);
+
         return Ok();
     }
 
     [HttpGet]
-    [Route("weekScheme")]
+    [Route("week-scheme")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> GetDoctorWeekSchemeAsync()
     {
@@ -47,47 +52,43 @@ public class DoctorController : ControllerBase
         }
 
         var weekScheme = await _doctorDaySchemeService.GetDoctorWeekSchemeAsync(int.Parse(userId));
+
+        _logger.LogInformation("Doctor with id: {userId} retrieved their week scheme.", userId);
+
         return Ok(weekScheme);
     }
 
     [HttpPost]
-    [Route("addDoctor")]
+    [Route("doctor")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddDoctorAsync([FromBody] AddDoctorDto addDoctorDto)
     {
-        try
-        {
-            await _doctorService.AddDoctorAsync(addDoctorDto);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return BadRequest(e.Message);
-        }
+        await _doctorService.AddDoctorAsync(addDoctorDto);
+
+        _logger.LogInformation("New doctor added for user with ID: {userId}", addDoctorDto.UserId);
+
+        return Ok();
     }
 
     [HttpDelete]
-    [Route("deleteDoctor/{doctorId}")]
+    [Route("doctor/{doctorId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteDoctorAsync(int doctorId)
     {
-        try
-        {
-            await _doctorService.DeleteDoctorAsync(doctorId);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return BadRequest(e.Message);
-        }
+        await _doctorService.DeleteDoctorAsync(doctorId);
+
+        _logger.LogInformation("Doctor with ID: {doctorId} has been deleted.", doctorId);
+
+        return Ok();
     }
 
     [HttpGet]
     public async Task<IActionResult> GetDoctorsAsync()
     {
         var result = await _doctorService.GetDoctorsAsync();
+
+        _logger.LogInformation("Retrieved list of doctors.");
+
         return Ok(result);
     }
 }

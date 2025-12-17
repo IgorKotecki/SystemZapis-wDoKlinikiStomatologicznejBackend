@@ -4,28 +4,33 @@ using SystemZapisowDoKlinikiApi.Services;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
-
 [ApiController]
 [Route("api/[controller]")]
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
-    public UserController(IUserService userService) { 
+    private readonly ILogger<UserController> _logger;
+
+    public UserController(IUserService userService, ILogger<UserController> logger)
+    {
         _userService = userService;
+        _logger = logger;
     }
 
-    [HttpGet("{id}")] 
+    [HttpGet("{id}")]
     public async Task<IActionResult> GetUserById(int id)
     {
         var user = await _userService.GetUserByIdAsync(id);
         if (user == null)
-        { 
+        {
             return NotFound($"User with id = {id} not found.");
         }
-            
-        return Ok(user); 
+
+        _logger.LogInformation("Retrieved user with id: {UserId}", id);
+
+        return Ok(user);
     }
-    
+
     [HttpPut("edit/{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO dto)
     {
@@ -33,6 +38,8 @@ public class UserController : ControllerBase
 
         if (updated == null)
             return NotFound("User not found");
+
+        _logger.LogInformation("Updated user with id: {UserId}", id);
 
         return Ok(updated);
     }
