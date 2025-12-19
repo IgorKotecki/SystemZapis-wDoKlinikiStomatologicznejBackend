@@ -6,7 +6,9 @@ using ProjektSemestralnyTinWebApi.Security;
 using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 using SystemZapisowDoKlinikiApi.Services;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,7 @@ builder.Services.AddScoped<IDoctorDaySchemeRepository, DoctorDaySchemeRepository
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IToothRepository, ToothRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<ICloudinaryRepository, CloudinaryRepository>();
 
 // Services
 builder.Services.AddScoped<ITimeBlockService, TimeBlockService>();
@@ -35,6 +38,7 @@ builder.Services.AddScoped<IDoctorDaySchemeService, DoctorDaySchemeService>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IToothService, ToothService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 builder.Services.AddScoped<IEmailService, EmailSender>();
 
