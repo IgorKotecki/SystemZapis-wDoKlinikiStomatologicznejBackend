@@ -9,16 +9,22 @@ namespace SystemZapisowDoKlinikiApi.Controllers;
 public class TimeBlocksController : ControllerBase
 {
     private readonly ITimeBlockService _timeBlockService;
+    private readonly ILogger<TimeBlocksController> _logger;
 
-    public TimeBlocksController(ITimeBlockService timeBlockService)
+    public TimeBlocksController(ITimeBlockService timeBlockService, ILogger<TimeBlocksController> logger)
     {
         _timeBlockService = timeBlockService;
+        _logger = logger;
     }
 
-    [HttpGet("GetTimeBlocks/{id}")]
-    public async Task<IActionResult> GetTimeBlocks(int id, [FromQuery] DateRequest date)
+    [HttpGet("time-blocks/{doctorId}")]
+    public async Task<IActionResult> GetTimeBlocks(int doctorId, [FromQuery] DateRequest date)
     {
-        var timeBlocks = await _timeBlockService.GetTimeBlocksAsync(id, date);
+        var timeBlocks = await _timeBlockService.GetTimeBlocksAsync(doctorId, date);
+
+        _logger.LogInformation("Retrieved {Count} time blocks for doctor with id: {DoctorId} on date: {Date}",
+            timeBlocks.Count, doctorId, date.ToString());
+
         return Ok(timeBlocks);
     }
 }

@@ -62,4 +62,19 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
     }
+
+    public async Task<ICollection<UserDTO>> GetAllUsersAsync()
+    {
+        return await _context.Users
+            .Where(u => u.RolesId == 3 || u.RolesId == 4)
+            .Select(u => new UserDTO()
+            {
+                Id = u.Id,
+                Name = u.Name,
+                Surname = u.Surname,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber,
+            })
+            .ToListAsync();
+    }
 }

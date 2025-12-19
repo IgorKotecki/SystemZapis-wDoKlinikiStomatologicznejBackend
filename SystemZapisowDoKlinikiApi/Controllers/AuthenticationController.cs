@@ -14,18 +14,21 @@ using RegisterRequest = SystemZapisowDoKlinikiApi.Models.RegisterRequest;
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
 [ApiController]
-[Route("api")]
+[Route("api/auth")]
 public class AuthenticationController : ControllerBase
 {
     private readonly ClinicDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailSender;
+    private readonly ILogger<AuthenticationController> _logger;
 
-    public AuthenticationController(ClinicDbContext context, IConfiguration configuration, IEmailService emailSender)
+    public AuthenticationController(ClinicDbContext context, IConfiguration configuration, IEmailService emailSender,
+        ILogger<AuthenticationController> logger)
     {
         _context = context;
         _configuration = configuration;
         _emailSender = emailSender;
+        _logger = logger;
     }
 
     [AllowAnonymous]
@@ -66,6 +69,8 @@ public class AuthenticationController : ControllerBase
 
         await _context.Database.ExecuteSqlRawAsync("EXEC CreateDefaultTeethModelForUser @UserId = {0}", userId);
 
+        _logger.LogInformation("New user registered with id: {userId} and email: {email}", userId, user.Email);
+
         return Ok();
     }
 
@@ -99,14 +104,16 @@ public class AuthenticationController : ControllerBase
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(1),
+            expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: credentials
         );
-//Zmienione z 10 na 1 minuta do testow
+
         user.RefreshToken = SecurityHelper.GenerateRefreshToken();
         user.RefreshTokenExpDate = DateTime.UtcNow.AddDays(1);
-        Console.WriteLine(user.RefreshToken);
+
         await _context.SaveChangesAsync();
+
+        _logger.LogInformation("User logged in with id: {userId} and email: {email}", user.Id, user.Email);
 
         return Ok(new
         {
@@ -121,14 +128,11 @@ public class AuthenticationController : ControllerBase
     {
         var user = await _context.Users.Include(user => user.Roles)
             .FirstOrDefaultAsync(u => u.RefreshToken.Trim() == model.RefreshToken.Trim());
-        Console.WriteLine($"RefreshToken z żądania: {model.RefreshToken}");
 
         if (user == null)
         {
             throw new SecurityTokenExpiredException("UserNotFound");
         }
-
-        Console.WriteLine($"RefreshToken użytkownika: {user.RefreshToken}");
 
         if (user.RefreshTokenExpDate < DateTime.UtcNow)
         {
@@ -149,13 +153,16 @@ public class AuthenticationController : ControllerBase
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(1),
+            expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: creds
         );
 
         user.RefreshToken = SecurityHelper.GenerateRefreshToken();
         user.RefreshTokenExpDate = DateTime.UtcNow.AddDays(1);
         await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Refresh token issued for user with id: {userId} and email: {email}", user.Id,
+            user.Email);
 
         return Ok(new
         {
@@ -164,10 +171,9 @@ public class AuthenticationController : ControllerBase
         });
     }
 
-    [HttpPost("forgotPassword")]
+    [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPasswordAsync(ForgotPasswordRequest model)
     {
-        Console.WriteLine(model.Email);
         if (!ModelState.IsValid)
         {
             return BadRequest();
@@ -203,10 +209,12 @@ public class AuthenticationController : ControllerBase
         await _emailSender.SendEmailAsync(model.Email, "Password Reset",
             $"Click the following link to reset your password: {resetLink}");
 
+        _logger.LogInformation("Password reset link sent to email: {email}", user.Email);
+
         return Ok();
     }
 
-    [HttpPost("resetPassword")]
+    [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPasswordAsync(ResetPasswordDto model)
     {
         if (!ModelState.IsValid)
@@ -255,6 +263,8 @@ public class AuthenticationController : ControllerBase
         user.RefreshTokenExpDate = null;
 
         await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Password reset for user with email: {email}", user.Email);
 
         return Ok();
     }

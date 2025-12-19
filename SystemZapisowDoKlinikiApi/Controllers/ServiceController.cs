@@ -10,79 +10,74 @@ namespace SystemZapisowDoKlinikiApi.Controllers;
 public class ServiceController : ControllerBase
 {
     private readonly IServiceService _serviceService;
+    private readonly ILogger<ServiceController> _logger;
 
-    public ServiceController(IServiceService serviceService)
+    public ServiceController(IServiceService serviceService, ILogger<ServiceController> logger)
     {
         _serviceService = serviceService;
+        _logger = logger;
     }
 
-    [HttpGet("UserServices")]
+    [HttpGet("user-services")]
     public async Task<ActionResult<ICollection<ServiceDTO>>> GetAllServicesAvailableForClientWithLangAsync(
         [FromQuery] string lang)
     {
-        try
-        {
-            var services = await _serviceService.GetAllServicesAvailableForClientWithLangAsync(lang);
-            return Ok(services);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var services = await _serviceService.GetAllServicesAvailableForClientWithLangAsync(lang);
+
+        _logger.LogInformation("Retrieved {Count} services for client with language preference: {Lang}", services.Count,
+            lang);
+
+        return Ok(services);
     }
 
     [HttpPost]
-    [Route("addService")]
+    [Route("service")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> AddServiceAsync([FromBody] AddServiceDto addServiceDto)
     {
-        try
-        {
-            await _serviceService.AddServiceAsync(addServiceDto);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return BadRequest(e.Message);
-        }
+        await _serviceService.AddServiceAsync(addServiceDto);
+
+        _logger.LogInformation("Added new service: {ServiceName}", addServiceDto.Languages.FirstOrDefault()?.Name);
+
+        return Ok();
     }
 
-    [HttpGet("AllServices")]
+    [HttpGet("receptionist-services")]
+    [Authorize(Roles = "Receptionist,Admin")]
+    public async Task<ActionResult<ICollection<ServiceDTO>>> GetAllServicesForReceptionistAsync([FromQuery] string lang)
+    {
+        var services = await _serviceService.GetAllServicesForReceptionistAsync(lang);
+
+        _logger.LogInformation("Retrieved all services for receptionist with language preference: {Lang}", lang);
+
+        return Ok(services);
+    }
+
+    [HttpGet("services")]
     public async Task<IActionResult> GetAllServicesAsync([FromQuery] string lang)
     {
-        try
-        {
-            var services = await _serviceService.GerAllServicesAsync(lang);
-            if (!services.ServicesByCategory.Any())
-                return NotFound("No services found.");
-            return Ok(services);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var services = await _serviceService.GerAllServicesAsync(lang);
+
+        _logger.LogInformation("Retrieved all services by categories for language: {Lang}", lang);
+
+        return Ok(services);
     }
 
     [HttpDelete]
-    [Route("deleteService/{serviceId}")]
+    [Route("service/{serviceId}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteServiceAsync([FromRoute] int serviceId)
     {
-        try
-        {
-            await _serviceService.DeleteServiceAsync(serviceId);
-            return Ok();
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e.Message);
-            return BadRequest(e.Message);
-        }
+        await _serviceService.DeleteServiceAsync(serviceId);
+
+        _logger.LogInformation("Deleted service with ID: {ServiceId}", serviceId);
+
+        return Ok();
     }
-    
+
     [HttpPut("editService/{serviceId}")]
-    public async Task<IActionResult> EditServiceAsync([FromRoute] int serviceId, [FromBody] ServiceEditDTO serviceEditDto)
+    public async Task<IActionResult> EditServiceAsync([FromRoute] int serviceId,
+        [FromBody] ServiceEditDTO serviceEditDto)
     {
         try
         {
@@ -115,7 +110,7 @@ public class ServiceController : ControllerBase
 
         return Ok(service);
     }
-    
+
     [HttpGet("edit/{serviceId}")]
     public async Task<IActionResult> GetServiceForEdit(int serviceId)
     {
@@ -126,5 +121,4 @@ public class ServiceController : ControllerBase
 
         return Ok(service);
     }
-
 }

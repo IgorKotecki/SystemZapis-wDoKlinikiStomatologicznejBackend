@@ -9,25 +9,21 @@ namespace SystemZapisowDoKlinikiApi.Controllers;
 public class TeamController : ControllerBase
 {
     private readonly ITeamService _teamService;
+    private readonly ILogger<TeamController> _logger;
 
-    public TeamController(ITeamService teamService)
+    public TeamController(ITeamService teamService, ILogger<TeamController> logger)
     {
         _teamService = teamService;
+        _logger = logger;
     }
 
-    [HttpGet("TeamMembers")]
+    [HttpGet("members")]
     public async Task<ActionResult<ICollection<TeamDTO>>> GetAllTeamMembersAsync()
     {
-        try
-        {
-            var teamMembers = await _teamService.GetAllTeamMembersAsync();
-            if(!teamMembers.Any())
-                return NotFound("No team members found.");
-            return Ok(teamMembers);
-        }
-        catch (Exception e)
-        {
-            return BadRequest(e.Message);
-        }
+        var teamMembers = await _teamService.GetAllTeamMembersAsync();
+
+        _logger.LogInformation("Retrieved {Count} team members.", teamMembers.Count);
+
+        return Ok(teamMembers);
     }
 }

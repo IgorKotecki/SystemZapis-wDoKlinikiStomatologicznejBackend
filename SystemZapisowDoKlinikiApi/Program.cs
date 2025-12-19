@@ -2,8 +2,10 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Logs;
 using ProjektSemestralnyTinWebApi.Security;
 using SystemZapisowDoKlinikiApi.Controllers;
+using SystemZapisowDoKlinikiApi.Middlewares;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
@@ -17,6 +19,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Repositories
 builder.Services.AddScoped<ITimeBlockRepository, TimeBlockRepository>();
@@ -44,6 +49,13 @@ builder.Services.AddScoped<IEmailService, EmailSender>();
 
 builder.Services.AddHttpContextAccessor();
 
+builder.Logging.ClearProviders();
+builder.Logging.AddOpenTelemetry(x => x.AddConsoleExporter());
+
+builder.Logging.AddFilter(
+    "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware",
+    LogLevel.None);
+
 builder.Services.AddDbContext<ClinicDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -64,7 +76,8 @@ builder.Services.AddAuthentication(options =>
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)
-            )
+            ),
+            ClockSkew = TimeSpan.Zero
         };
     });
 
@@ -82,6 +95,34 @@ app.UseCors("AllowLocalhost");
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseExceptionHandler();
+
+// app.Use(async (context, next) =>
+// {
+//     var endpoint = context.GetEndpoint();
+//     if (endpoint?.Metadata?.GetMetadata<AuthorizeAttribute>() != null)
+//     {
+//         var authHeader = context.Request.Headers["Authorization"].ToString();
+//         Console.WriteLine($"Auth Header: {authHeader}");
+//         
+//         if (authHeader.StartsWith("Bearer "))
+//         {
+//             var token = authHeader.Substring(7);
+//             var handler = new JwtSecurityTokenHandler();
+//             
+//             if (handler.CanReadToken(token))
+//             {
+//                 var jwtToken = handler.ReadJwtToken(token);
+//                 var exp = jwtToken.ValidTo;
+//                 Console.WriteLine($"Token exp: {exp}, UTC Now: {DateTime.UtcNow}");
+//                 Console.WriteLine($"Is expired: {exp < DateTime.UtcNow}");
+//             }
+//         }
+//     }
+//     
+//     await next();
+// });
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

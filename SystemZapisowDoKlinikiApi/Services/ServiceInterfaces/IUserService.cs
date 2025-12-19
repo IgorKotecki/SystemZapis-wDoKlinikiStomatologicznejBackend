@@ -9,4 +9,5 @@ public interface IUserService
     public Task<User?> GetUserByEmailAsync(string email);
     public Task<UserDTO?> GetUserByIdAsync(int id);
     public Task<UserDTO?> UpdateUserAsync(int id, UserUpdateDTO dto);
+    Task<ICollection<UserDTO>> GetAllUsersAsync();
 }

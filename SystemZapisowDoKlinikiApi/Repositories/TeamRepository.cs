@@ -7,12 +7,12 @@ namespace SystemZapisowDoKlinikiApi.Repositories;
 public class TeamRepository : ITeamRepository
 {
     private readonly ClinicDbContext _context;
-    
+
     public TeamRepository(ClinicDbContext context)
     {
         _context = context;
     }
-    
+
     public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
     {
         var staffRoles = new int[] { 1, 2 };

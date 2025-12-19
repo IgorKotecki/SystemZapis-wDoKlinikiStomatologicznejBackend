@@ -15,4 +15,5 @@ public interface IServiceRepository
 
 
     public Task<List<ServiceCategory>> GetAllServiceCategories();
+    Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang);
 }

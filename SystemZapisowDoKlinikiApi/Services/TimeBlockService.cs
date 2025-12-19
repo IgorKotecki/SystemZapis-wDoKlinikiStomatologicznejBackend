@@ -1,4 +1,5 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using Microsoft.IdentityModel.Tokens;
+using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Repositories;
 
 namespace SystemZapisowDoKlinikiApi.Services;
@@ -14,7 +15,13 @@ public class TimeBlockService : ITimeBlockService
 
     public async Task<ICollection<TimeBlockDto>> GetTimeBlocksAsync(int id, DateRequest date)
     {
-        return await _timeBlockRepository.GetTimeBlocksAsync(id, date);
+        var timeBlocks = await _timeBlockRepository.GetTimeBlocksAsync(id, date);
+        if (timeBlocks.IsNullOrEmpty())
+        {
+            throw new KeyNotFoundException("No time blocks found for the given doctor and date.");
+        }
+
+        return timeBlocks;
     }
 
     public async Task<TimeBlockDto?> GetTimeBlockByDoctorBlockIdAsync(int id)

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
@@ -8,12 +8,10 @@ namespace SystemZapisowDoKlinikiApi.Services;
 public class ServiceService : IServiceService
 {
     private readonly IServiceRepository _serviceRepository;
-    private readonly ClinicDbContext _context;
 
-    public ServiceService(IServiceRepository serviceRepository, ClinicDbContext context)
+    public ServiceService(IServiceRepository serviceRepository)
     {
         _serviceRepository = serviceRepository;
-        _context = context;
     }
 
     public async Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang)
@@ -48,24 +46,30 @@ public class ServiceService : IServiceService
         await _serviceRepository.AddServiceAsync(addServiceDto);
     }
 
-    public Task<AllServicesDto> GerAllServicesAsync(string lang)
+    public async Task<AllServicesDto> GerAllServicesAsync(string lang)
     {
         if (string.IsNullOrEmpty(lang))
             lang = "pl";
 
-        return _serviceRepository.GetAllServicesAsync(lang);
+        var services = await _serviceRepository.GetAllServicesAsync(lang);
+
+        if (services.ServicesByCategory.IsNullOrEmpty())
+        {
+            throw new KeyNotFoundException("No services found.");
+        }
+
+        return services;
     }
 
     public async Task<Service?> GetServiceByIdAsync(int serviceId)
     {
         return await _serviceRepository.GetServiceByIdAsync(serviceId);
     }
-    
+
     public async Task<ServiceEditDTO?> GetServiceForEditAsync(int serviceId)
     {
         return await _serviceRepository.GetServiceEditDTOByIdAsync(serviceId);
     }
-
 
 
     public Task DeleteServiceAsync(int serviceId)
@@ -91,5 +95,10 @@ public class ServiceService : IServiceService
             NamePl = c.NamePl,
             NameEn = c.NameEn
         }).ToList();
+    }
+
+    public async Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang)
+    {
+        return await _serviceRepository.GetAllServicesForReceptionistAsync(lang);
     }
 }
