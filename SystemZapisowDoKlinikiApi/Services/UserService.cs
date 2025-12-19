@@ -61,7 +61,8 @@ public class UserService : IUserService
             Surname = user.Surname,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            RoleName = user.Roles?.Name ?? ""
+            RoleName = user.Roles?.Name ?? "",
+            PhotoURL = user.PhotoURL
         };
     }
 
