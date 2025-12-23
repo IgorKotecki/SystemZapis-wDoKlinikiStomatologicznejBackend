@@ -118,7 +118,8 @@ public class AuthenticationController : ControllerBase
         return Ok(new
         {
             accessToken = new JwtSecurityTokenHandler().WriteToken(token),
-            refreshToken = user.RefreshToken
+            refreshToken = user.RefreshToken,
+            photoURL = user.PhotoURL
         });
     }
 

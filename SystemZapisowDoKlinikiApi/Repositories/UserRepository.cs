@@ -32,7 +32,7 @@ public class UserRepository : IUserRepository
         //TODO pamietac ze podzszywac sie moze ktos i trzba potwierzdzic mailowo 
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
-
+    
     public async Task<UserDTO?> GetUserByIdAsync(int id)
     {
         return await _context.Users
@@ -45,7 +45,8 @@ public class UserRepository : IUserRepository
                 Surname = u.Surname,
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
-                RoleName = u.Roles.Name
+                RoleName = u.Roles.Name,
+                PhotoURL = u.PhotoURL
             })
             .FirstOrDefaultAsync();
     }

@@ -6,4 +6,5 @@ public class UserUpdateDTO
     public string Surname { get; set; }
     public string PhoneNumber { get; set; }
     public string email { get; set; }
+    public string PhotoURL { get; set; }
 }
