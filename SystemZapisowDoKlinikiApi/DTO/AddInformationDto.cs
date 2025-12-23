@@ -2,6 +2,6 @@
 
 public class AddInformationDto
 {
-    public string BodyPl { get; set; }
-    public string BodyEn { get; set; }
+    public required string BodyPl { get; set; }
+    public required string BodyEn { get; set; }
 }

@@ -87,9 +87,9 @@ public class ServiceRepository : IServiceRepository
 
         try
         {
-            var requiredService = await _context.Services.FirstOrDefaultAsync(s => s.Id == addServiceDto.serviceId);
+            var requiredService = await _context.Services.FirstOrDefaultAsync(s => s.Id == addServiceDto.ServiceId);
 
-            if (requiredService == null && (addServiceDto.serviceId != 0 && addServiceDto.serviceId != null))
+            if (requiredService == null && (addServiceDto.ServiceId != 0 && addServiceDto.ServiceId != null))
             {
                 throw new ArgumentException("Required service with given id does not exist");
             }

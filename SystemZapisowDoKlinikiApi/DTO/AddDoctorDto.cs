@@ -2,8 +2,8 @@
 
 public class AddDoctorDto
 {
-    public int UserId { get; set; }
-    public string SpecializationPl { get; set; }
-    public string SpecializationEn { get; set; }
-    public string ImageUrl { get; set; }
+    public required int UserId { get; set; }
+    public required string SpecializationPl { get; set; }
+    public required string SpecializationEn { get; set; }
+    public string? ImageUrl { get; set; }
 }
