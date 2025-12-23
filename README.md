@@ -47,7 +47,7 @@ dotnet restore
 dotnet ef database update
 ```
 
-5. Uruchom aplikację:
+5. Uruchom aplikację: 
 ```bash
 dotnet run
 ```
@@ -70,6 +70,9 @@ dotnet run
 - 📊 API RESTful z dokumentacją Swagger
 - 🔒 Bezpieczne endpointy z rolami użytkowników
 
-## 📝 Autor
+## 📝 Autorzy
+
+- Paweł Szeliga
+- Igor Kotecki
 
 Projekt stworzony jako część pracy inżynierskiej.
