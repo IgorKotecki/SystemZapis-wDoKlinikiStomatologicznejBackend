@@ -24,7 +24,7 @@ public class UserRepository : IUserRepository
             RolesId = 4
         };
         _context.Users.Add(user);
-        return await _context.SaveChangesAsync().ContinueWith(t => user.Id);
+        return await _context.SaveChangesAsync().ContinueWith(_ => user.Id);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)

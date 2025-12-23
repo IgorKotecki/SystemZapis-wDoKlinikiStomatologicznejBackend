@@ -2,6 +2,6 @@
 
 public class AddInformationOutDto
 {
-    public int Id { get; set; }
-    public string Body { get; set; }
+    public required int Id { get; set; }
+    public required string Body { get; set; }
 }

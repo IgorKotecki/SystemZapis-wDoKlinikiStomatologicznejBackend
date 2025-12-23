@@ -1,4 +1,3 @@
-using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
@@ -56,11 +55,6 @@ public class AppointmentService : IAppointmentService
 
         var appointments = await _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang);
 
-        if (appointments.IsNullOrEmpty())
-        {
-            throw new KeyNotFoundException($"No appointments found for user with ID {userId}.");
-        }
-
         return appointments;
     }
 
@@ -75,11 +69,6 @@ public class AppointmentService : IAppointmentService
         var mondayDate = GetMonday(date);
 
         var appointments = await _appointmentRepository.GetAppointmentsByDoctorIdAsync(doctorId, mondayDate, lang);
-
-        if (appointments.IsNullOrEmpty())
-        {
-            throw new KeyNotFoundException($"No appointments found for doctor with ID {doctorId}.");
-        }
 
         return appointments;
     }
@@ -127,11 +116,6 @@ public class AppointmentService : IAppointmentService
         var mondayDate = GetMonday(date);
 
         var appointments = await _appointmentRepository.GetAppointmentsForReceptionistAsync(mondayDate, lang);
-
-        if (appointments.IsNullOrEmpty())
-        {
-            throw new KeyNotFoundException($"No appointments found for date {date.ToShortDateString()}.");
-        }
 
         return appointments;
     }

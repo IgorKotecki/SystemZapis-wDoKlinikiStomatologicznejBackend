@@ -2,7 +2,7 @@
 
 public class AppointmentStatus
 {
-    public int Id { get; set; }
-    public string NamePl { get; set; }
-    public string NameEn { get; set; }
+    public required int Id { get; set; }
+    public required string NamePl { get; set; }
+    public required string NameEn { get; set; }
 }
