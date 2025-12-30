@@ -10,4 +10,5 @@ public interface IUserService
     public Task<UserDTO?> GetUserByIdAsync(int id);
     public Task<UserDTO?> UpdateUserAsync(int id, UserUpdateDTO dto);
     Task<ICollection<UserDTO>> GetAllUsersAsync();
+    public Task DeleteUserAsync(int userId);
 }

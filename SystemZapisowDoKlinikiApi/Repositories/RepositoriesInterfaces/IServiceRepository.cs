@@ -12,8 +12,6 @@ public interface IServiceRepository
     public Task<AllServicesDto> GetAllServicesAsync(string lang);
     Task DeleteServiceAsync(int serviceId);
     Task EditServiceAsync(int serviceId, ServiceEditDTO serviceEditDTO);
-
-
     public Task<List<ServiceCategory>> GetAllServiceCategories();
     Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang);
 }

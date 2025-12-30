@@ -78,4 +78,22 @@ public class UserRepository : IUserRepository
             })
             .ToListAsync();
     }
+
+    public async Task DeleteUserAsync(int userId)
+    {
+        try
+        {
+            var affectedRows = await _context.Users
+                .Where(u => u.Id == userId)
+                .ExecuteDeleteAsync();
+            if (affectedRows == 0)
+            {
+                throw new KeyNotFoundException("User not found");
+            }
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Error deleting user", e);
+        }
+    }
 }

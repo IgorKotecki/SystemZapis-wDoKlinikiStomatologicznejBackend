@@ -65,7 +65,7 @@ public class ServiceController : ControllerBase
 
     [HttpDelete]
     [Route("service/{serviceId}")]
-    //[Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")] tu dodanie recepcjonisty i jezeli chcemy to tez lekarza
     public async Task<IActionResult> DeleteServiceAsync([FromRoute] int serviceId)
     {
         await _serviceService.DeleteServiceAsync(serviceId);

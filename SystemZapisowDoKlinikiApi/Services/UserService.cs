@@ -70,4 +70,9 @@ public class UserService : IUserService
     {
         return await _userRepository.GetAllUsersAsync();
     }
+
+    public Task DeleteUserAsync(int userId)
+    {
+        return _userRepository.DeleteUserAsync(userId);
+    }
 }

@@ -55,4 +55,14 @@ public class UserController : ControllerBase
 
         return Ok(users);
     }
+    
+    [HttpDelete("delete/{userId}")]
+    public async Task<IActionResult> DeleteUser(int userId)
+    {
+        await _userService.DeleteUserAsync(userId);
+
+        _logger.LogInformation("Deleted user with id: {UserId}", userId);
+
+        return NoContent();
+    }
 }
