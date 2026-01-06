@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using ProjektSemestralnyTinWebApi.Security;
 using SystemZapisowDoKlinikiApi.Controllers;
@@ -50,7 +51,18 @@ builder.Services.AddScoped<IEmailService, EmailSender>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Logging.ClearProviders();
-builder.Logging.AddOpenTelemetry(x => x.AddConsoleExporter());
+builder.Logging.AddOpenTelemetry(x =>
+{
+    x.IncludeScopes = true;
+    x.IncludeFormattedMessage = true;
+
+    x.AddOtlpExporter(a =>
+    {
+        a.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]!);
+        a.Protocol = OtlpExportProtocol.HttpProtobuf;
+        a.Headers = builder.Configuration["Otlp:Headers"]!;
+    });
+});
 
 builder.Logging.AddFilter(
     "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware",
