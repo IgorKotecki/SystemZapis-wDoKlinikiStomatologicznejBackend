@@ -480,4 +480,79 @@ public class AppointmentRepository : IAppointmentRepository
 
         return result;
     }
+
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDateAsync(string lang, DateTime date)
+    {
+        var appointments = await _context.Appointments
+            .Include(a => a.Services)
+            .ThenInclude(s => s.ServicesTranslations)
+            .Include(a => a.Services)
+            .ThenInclude(s => s.ServiceCategories)
+            .Include(a => a.AppointmentStatus)
+            .Include(a => a.DoctorBlock)
+            .ThenInclude(db => db.DoctorUser)
+            .ThenInclude(du => du.User)
+            .Include(a => a.User)
+            .Include(a => a.DoctorBlock)
+            .ThenInclude(db => db.TimeBlock)
+            .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date == date)
+            .ToListAsync();
+
+        var groupedAppointments = appointments
+            .GroupBy(a => a.AppointmentGroupId);
+
+        var result = new List<AppointmentDto>();
+
+        foreach (var group in groupedAppointments)
+        {
+            var orderedBlocks = group.OrderBy(a => a.DoctorBlock.TimeBlock.TimeStart).ToList();
+
+            var dto = new AppointmentDto
+            {
+                User = new UserDTO
+                {
+                    Id = group.First().User.Id,
+                    Name = group.First().User.Name,
+                    Surname = group.First().User.Surname,
+                    Email = group.First().User.Email,
+                    PhoneNumber = group.First().User.PhoneNumber
+                },
+                AppointmentGroupId = group.Key!,
+                StartTime = orderedBlocks.First().DoctorBlock.TimeBlock.TimeStart,
+                EndTime = orderedBlocks.Last().DoctorBlock.TimeBlock.TimeEnd,
+                Doctor = new UserDTO
+                {
+                    Name = group.First().DoctorBlock.DoctorUser.User.Name,
+                    Surname = group.First().DoctorBlock.DoctorUser.User.Surname,
+                    Email = group.First().DoctorBlock.DoctorUser.User.Email
+                },
+                Services = group
+                    .SelectMany(a => a.Services)
+                    .Select(s => new ServiceDTO
+                    {
+                        Id = s.Id,
+                        LowPrice = s.LowPrice,
+                        HighPrice = s.HighPrice,
+                        MinTime = s.MinTime,
+                        LanguageCode = lang,
+                        Name = s.ServicesTranslations
+                            .Where(t => t.LanguageCode == lang)
+                            .Select(t => t.Name)
+                            .FirstOrDefault(),
+                        Catergories = s.ServiceCategories
+                            .Select(c => lang == "pl" ? c.NamePl : c.NameEn)
+                            .ToList()
+                    })
+                    .DistinctBy(s => s.Id)
+                    .ToList(),
+                Status = lang == "pl"
+                    ? group.First().AppointmentStatus.NamePl
+                    : group.First().AppointmentStatus.NameEn
+            };
+
+            result.Add(dto);
+        }
+
+        return result;
+    }
 }

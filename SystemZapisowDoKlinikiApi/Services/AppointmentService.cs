@@ -120,6 +120,11 @@ public class AppointmentService : IAppointmentService
         return appointments;
     }
 
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDate(string lang, DateTime date)
+    {
+        return await _appointmentRepository.GetAppointmentsByDateAsync(lang, date);
+    }
+
     private void CheckAddInformationDto(AddInformationDto addInformationDto)
     {
         if (addInformationDto == null)

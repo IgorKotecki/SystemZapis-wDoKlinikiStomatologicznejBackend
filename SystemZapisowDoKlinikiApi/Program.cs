@@ -48,6 +48,8 @@ builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
 builder.Services.AddScoped<IEmailService, EmailSender>();
 
+builder.Services.AddHostedService<DailyService>();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Logging.ClearProviders();
@@ -110,33 +112,6 @@ app.UseAuthorization();
 
 app.UseExceptionHandler();
 
-// app.Use(async (context, next) =>
-// {
-//     var endpoint = context.GetEndpoint();
-//     if (endpoint?.Metadata?.GetMetadata<AuthorizeAttribute>() != null)
-//     {
-//         var authHeader = context.Request.Headers["Authorization"].ToString();
-//         Console.WriteLine($"Auth Header: {authHeader}");
-//         
-//         if (authHeader.StartsWith("Bearer "))
-//         {
-//             var token = authHeader.Substring(7);
-//             var handler = new JwtSecurityTokenHandler();
-//             
-//             if (handler.CanReadToken(token))
-//             {
-//                 var jwtToken = handler.ReadJwtToken(token);
-//                 var exp = jwtToken.ValidTo;
-//                 Console.WriteLine($"Token exp: {exp}, UTC Now: {DateTime.UtcNow}");
-//                 Console.WriteLine($"Is expired: {exp < DateTime.UtcNow}");
-//             }
-//         }
-//     }
-//     
-//     await next();
-// });
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
