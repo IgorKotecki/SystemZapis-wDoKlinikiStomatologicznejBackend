@@ -105,6 +105,7 @@ public class AppointmentRepository : IAppointmentRepository
             .Include(a => a.DoctorBlock)
             .ThenInclude(db => db.TimeBlock)
             .Where(a => a.UserId == userId)
+            .AsSplitQuery()
             .ToListAsync();
         var groupedAppointments = appointments
             .GroupBy(a => a.AppointmentGroupId);
@@ -180,6 +181,7 @@ public class AppointmentRepository : IAppointmentRepository
             .Where(a => a.DoctorBlock.DoctorUserId == doctorId)
             .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date >= date.Date &&
                         a.DoctorBlock.TimeBlock.TimeStart.Date < date.AddDays(7).Date)
+            .AsSplitQuery()
             .ToListAsync();
 
         var groupedAppointments = appointments
@@ -407,6 +409,9 @@ public class AppointmentRepository : IAppointmentRepository
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(DateTime mondayDate, string lang)
     {
+        var startOfWeek = mondayDate.Date;
+        var endOfWeek = startOfWeek.AddDays(7).Date;
+
         var appointments = await _context.Appointments
             .Include(a => a.Services)
             .ThenInclude(s => s.ServicesTranslations)
@@ -419,8 +424,9 @@ public class AppointmentRepository : IAppointmentRepository
             .Include(a => a.User)
             .Include(a => a.DoctorBlock)
             .ThenInclude(db => db.TimeBlock)
-            .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date >= mondayDate.Date &&
-                        a.DoctorBlock.TimeBlock.TimeStart.Date < mondayDate.AddDays(7).Date)
+            .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date >= startOfWeek &&
+                        a.DoctorBlock.TimeBlock.TimeStart.Date < endOfWeek)
+            .AsSplitQuery()
             .ToListAsync();
 
         var groupedAppointments = appointments
@@ -496,6 +502,7 @@ public class AppointmentRepository : IAppointmentRepository
             .Include(a => a.DoctorBlock)
             .ThenInclude(db => db.TimeBlock)
             .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date.Date == date.Date)
+            .AsSplitQuery()
             .ToListAsync();
 
         var groupedAppointments = appointments
