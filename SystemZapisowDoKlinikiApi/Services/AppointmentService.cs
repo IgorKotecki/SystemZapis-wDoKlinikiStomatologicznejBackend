@@ -1,3 +1,4 @@
+using ProjektSemestralnyTinWebApi.Security;
 using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
@@ -10,13 +11,15 @@ public class AppointmentService : IAppointmentService
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IUserService _userService;
     private readonly ITimeBlockService _timeBlockService;
+    private readonly IEmailService _emailService;
 
     public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
-        ITimeBlockService timeBlockService)
+        ITimeBlockService timeBlockService, IEmailService emailService)
     {
         _appointmentRepository = appointmentRepository;
         _userService = userService;
         _timeBlockService = timeBlockService;
+        _emailService = emailService;
     }
 
     public async Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest)
@@ -44,6 +47,14 @@ public class AppointmentService : IAppointmentService
         }
 
         await _appointmentRepository.CreateAppointmentGuestAsync(appointmentRequest, userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User should not be null at this point.");
+        }
+
+        await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
+            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {appointmentRequest.StartTime}.\n\nBest regards,\nClinic Team");
     }
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang)
@@ -77,6 +88,16 @@ public class AppointmentService : IAppointmentService
         BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
         await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
+
+        var user = await _userService.GetUserByIdAsync(userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User should not be null at this point.");
+        }
+
+        await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
+            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {bookAppointmentRequestDto.StartTime}.\n\nBest regards,\nClinic Team");
     }
 
     public async Task CreateAddInformationAsync(AddInformationDto addInformationDto)

@@ -2,7 +2,7 @@
 
 public class ToothOutDTO
 {
-    public ToothStatusOutDto Status { get; set; }
+    public required ToothStatusOutDto Status { get; set; }
     public int ToothNumber { get; set; }
-    public string ToothName { get; set; }
+    public required string ToothName { get; set; }
 }

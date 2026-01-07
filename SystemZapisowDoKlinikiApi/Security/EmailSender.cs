@@ -14,7 +14,7 @@ public class EmailSender : IEmailService
         _logger = logger;
     }
 
-    public async Task SendEmailAsync(string to, string subject, string body)
+    public async Task SendEmailAsync(string? to, string subject, string body)
     {
         var mail = _configuration["EmailSettings:Mail"]!;
         var password = _configuration["EmailSettings:Password"]!;

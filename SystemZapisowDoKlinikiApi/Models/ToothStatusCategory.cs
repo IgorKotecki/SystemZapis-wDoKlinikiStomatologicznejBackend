@@ -3,7 +3,9 @@
 public class ToothStatusCategory
 {
     public int Id { get; set; }
-    
-    public ICollection<ToothStatusCategoryTranslation> Translations { get; set; }
-    public ICollection<ToothStatus> ToothStatuses { get; set; }
+
+    public ICollection<ToothStatusCategoryTranslation> Translations { get; set; } =
+        new List<ToothStatusCategoryTranslation>();
+
+    public ICollection<ToothStatus> ToothStatuses { get; set; } = new List<ToothStatus>();
 }

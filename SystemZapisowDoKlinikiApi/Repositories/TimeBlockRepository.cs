@@ -17,7 +17,6 @@ public class TimeBlockRepository : ITimeBlockRepository
     {
         var startOfDay = new DateTime(date.Year, date.Month, date.Day);
         var endOfDay = startOfDay.AddDays(1);
-        Console.WriteLine(date);
 
         var doctorBlocks = await _context.DoctorBlocks
             .Where(db => db.TimeBlock.TimeStart >= startOfDay && db.TimeBlock.TimeStart < endOfDay &&
@@ -35,7 +34,7 @@ public class TimeBlockRepository : ITimeBlockRepository
                     Email = db.DoctorUser.User.Email,
                     PhoneNumber = db.DoctorUser.User.PhoneNumber
                 },
-                isAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id),
+                IsAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id),
             })
             .ToListAsync();
 
@@ -57,7 +56,7 @@ public class TimeBlockRepository : ITimeBlockRepository
                 Email = db.DoctorUser.User.Email,
                 PhoneNumber = db.DoctorUser.User.PhoneNumber
             },
-            isAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id)
+            IsAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id)
             //Troche ciezka operacja mozna od razu przy zapisywawniu wstawiac flage dostepnosci
         }).FirstOrDefaultAsync();
     }

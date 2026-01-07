@@ -46,7 +46,7 @@ builder.Services.AddScoped<IToothService, ToothService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-builder.Services.AddScoped<IEmailService, EmailSender>();
+builder.Services.AddSingleton<IEmailService, EmailSender>();
 
 builder.Services.AddHostedService<DailyService>();
 

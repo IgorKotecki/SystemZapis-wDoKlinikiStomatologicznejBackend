@@ -13,7 +13,7 @@ public class DoctorDaySchemeRepository : IDoctorDaySchemeRepository
         _context = context;
     }
 
-    public async Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDTO weekSchemeDto)
+    public async Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDto weekSchemeDto)
     {
         var transaction = await _context.Database.BeginTransactionAsync();
         try
@@ -62,13 +62,13 @@ public class DoctorDaySchemeRepository : IDoctorDaySchemeRepository
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            throw;
+            throw new Exception("Error updating week scheme", ex);
         }
     }
 
-    public async Task<WeekSchemeDTO> GetDoctorWeekSchemeAsync(int UserId)
+    public async Task<WeekSchemeDto> GetDoctorWeekSchemeAsync(int UserId)
     {
-        var weekScheme = new WeekSchemeDTO()
+        var weekScheme = new WeekSchemeDto()
         {
             DaysSchemes = await _context.DaySchemeTimeBlocks
                 .Where(d => d.DoctorUser.UserId == UserId)

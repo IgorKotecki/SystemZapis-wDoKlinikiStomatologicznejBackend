@@ -4,12 +4,12 @@ namespace SystemZapisowDoKlinikiApi.DTO;
 
 public class AppointmentRequest
 {
-    [Required] public string Name { get; set; }
-    [Required] public string Surname { get; set; }
-    [Required] [EmailAddress] public string Email { get; set; }
-    [Required] [Phone] [MinLength(9)] public string PhoneNumber { get; set; }
-    [Required] public int DoctorId { get; set; }
-    [Required] public DateTime StartTime { get; set; }
-    [Required] public int Duration { get; set; }
-    [Required] public int[] ServicesIds { get; set; }
+    public required string Name { get; set; }
+    public required string Surname { get; set; }
+    [EmailAddress] public required string Email { get; set; }
+    [Phone] [MinLength(9)] public required string PhoneNumber { get; set; }
+    public int DoctorId { get; set; }
+    public DateTime StartTime { get; set; }
+    public int Duration { get; set; }
+    public ICollection<int> ServicesIds { get; set; } = new List<int>();
 }

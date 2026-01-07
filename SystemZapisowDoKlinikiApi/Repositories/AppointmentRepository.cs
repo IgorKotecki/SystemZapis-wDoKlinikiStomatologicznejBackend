@@ -401,7 +401,7 @@ public class AppointmentRepository : IAppointmentRepository
         catch (Exception e)
         {
             await transaction.RollbackAsync();
-            throw;
+            throw new Exception("Error updating appointment status", e);
         }
     }
 
@@ -495,7 +495,7 @@ public class AppointmentRepository : IAppointmentRepository
             .Include(a => a.User)
             .Include(a => a.DoctorBlock)
             .ThenInclude(db => db.TimeBlock)
-            .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date == date)
+            .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date.Date == date.Date)
             .ToListAsync();
 
         var groupedAppointments = appointments

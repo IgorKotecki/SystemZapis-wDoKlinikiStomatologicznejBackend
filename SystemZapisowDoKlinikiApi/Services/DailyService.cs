@@ -5,16 +5,18 @@ namespace SystemZapisowDoKlinikiApi.Services;
 public class DailyService : BackgroundService
 {
     private readonly IEmailService _emailService;
-    private readonly IAppointmentService _appointmentService;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public DailyService(IEmailService emailService, IAppointmentService appointmentService)
+    public DailyService(IEmailService emailService, IServiceScopeFactory scopeFactory)
     {
         _emailService = emailService;
-        _appointmentService = appointmentService;
+        _scopeFactory = scopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await DoWork(stoppingToken, DateTime.Now);
+
         while (!stoppingToken.IsCancellationRequested)
         {
             var now = DateTime.Now;
@@ -31,7 +33,12 @@ public class DailyService : BackgroundService
 
     private async Task DoWork(CancellationToken stoppingToken, DateTime dateTime)
     {
-        var appointments = await _appointmentService.GetAppointmentsByDate("pl", dateTime.AddDays(1));
+        using var scope = _scopeFactory.CreateScope();
+
+        var appointmentService = scope.ServiceProvider.GetRequiredService<IAppointmentService>();
+
+        var appointments = await appointmentService.GetAppointmentsByDate("pl", dateTime.AddDays(1));
+
         foreach (var appointment in appointments)
         {
             var patientEmail = appointment.User.Email;

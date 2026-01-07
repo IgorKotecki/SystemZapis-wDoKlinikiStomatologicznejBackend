@@ -1,7 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
 using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
@@ -36,8 +35,8 @@ public class CloudinaryRepository : ICloudinaryRepository
         {
             Signature = signature,
             Timestamp = timestamp,
-            CloudName = _configuration["Cloudinary:CloudName"],
-            ApiKey = _configuration["Cloudinary:ApiKey"]
+            CloudName = _configuration["Cloudinary:CloudName"]!,
+            ApiKey = _configuration["Cloudinary:ApiKey"]!
         };
     }
 }

@@ -16,5 +16,5 @@ public class ServiceDTO
 
     public string? Description { get; set; }
     public string? PhotoUrl { get; set; } = null!;
-    public ICollection<string> Catergories { get; set; }
+    public ICollection<string> Catergories { get; set; } = new List<string>();
 }

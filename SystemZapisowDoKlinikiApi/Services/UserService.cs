@@ -49,8 +49,8 @@ public class UserService : IUserService
         user.Name = dto.Name;
         user.Surname = dto.Surname;
         user.PhoneNumber = dto.PhoneNumber;
-        user.Email = dto.email;
-        user.PhotoURL = dto.PhotoURL;
+        user.Email = dto.Email;
+        user.PhotoURL = dto.PhotoUrl;
 
         await _userRepository.UpdateUserAsync(user);
 
