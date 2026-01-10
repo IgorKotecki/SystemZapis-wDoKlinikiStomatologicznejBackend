@@ -15,8 +15,6 @@ public class DailyService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        await DoWork(stoppingToken, DateTime.Now);
-
         while (!stoppingToken.IsCancellationRequested)
         {
             var now = DateTime.Now;
