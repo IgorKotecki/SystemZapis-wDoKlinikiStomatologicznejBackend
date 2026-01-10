@@ -34,7 +34,7 @@ public class TimeBlockService : ITimeBlockService
         return await _timeBlockRepository.CheckIfAvailableTimeBlockAsync(startTime, duration);
     }
 
-    public Task<List<WorkingHoursDto>> GetWorkingHoursAsync(int doctorId, DateTime date)
+    public async Task<List<WorkingHoursDto>> GetWorkingHoursAsync(int doctorId, DateTime date)
     {
         int daysFromMonday = date.DayOfWeek == DayOfWeek.Sunday
             ? 6
@@ -42,6 +42,11 @@ public class TimeBlockService : ITimeBlockService
 
         var monday = date.AddDays(-daysFromMonday);
         var sunday = monday.AddDays(6);
-        return _timeBlockRepository.GetWorkingHoursAsync(doctorId, monday, sunday);
+        return await _timeBlockRepository.GetWorkingHoursAsync(doctorId, monday, sunday);
+    }
+
+    public async Task DeleteWorkingHoursAsync(int doctorId, DateTime date)
+    {
+        await _timeBlockRepository.DeleteWorkingHoursAsync(doctorId, date);
     }
 }

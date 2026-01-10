@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Models;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
@@ -56,8 +57,7 @@ public class TimeBlockRepository : ITimeBlockRepository
                 Email = db.DoctorUser.User.Email,
                 PhoneNumber = db.DoctorUser.User.PhoneNumber
             },
-            IsAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id)
-            //Troche ciezka operacja mozna od razu przy zapisywawniu wstawiac flage dostepnosci
+            IsAvailable = db.Appointments.All(a => a.DoctorBlockId != db.Id),
         }).FirstOrDefaultAsync();
     }
 
@@ -92,6 +92,40 @@ public class TimeBlockRepository : ITimeBlockRepository
             .ToListAsync();
 
         return MergeContinuousBlocks(blocks);
+    }
+
+    public async Task DeleteWorkingHoursAsync(int doctorId, DateTime date)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var hasAppointments = await _context.DoctorBlocks
+                .Where(db =>
+                    db.DoctorUser.UserId == doctorId &&
+                    db.TimeBlock.TimeStart.Date == date.Date)
+                .AnyAsync(db => db.Appointments.Any());
+
+            if (hasAppointments)
+            {
+                throw new BusinessException("DAY_HAS_APPOINTMENTS",
+                    "Cannot delete working hours for the day that has appointments.");
+            }
+
+            var blocksToDelete = await _context.DoctorBlocks
+                .Where(db =>
+                    db.DoctorUser.UserId == doctorId &&
+                    db.TimeBlock.TimeStart.Date == date.Date)
+                .ToListAsync();
+
+            _context.DoctorBlocks.RemoveRange(blocksToDelete);
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     private List<WorkingHoursDto> MergeContinuousBlocks(List<WorkingHoursDto> blocks)
