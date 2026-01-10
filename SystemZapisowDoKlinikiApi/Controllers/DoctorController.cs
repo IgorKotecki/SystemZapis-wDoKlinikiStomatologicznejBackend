@@ -25,7 +25,7 @@ public class DoctorController : ControllerBase
     [HttpPut]
     [Route("week-scheme")]
     [Authorize(Roles = "Doctor")]
-    public async Task<IActionResult> UpdateDoctorDaySchemeAsync([FromBody] WeekSchemeDTO weekSchemeDto)
+    public async Task<IActionResult> UpdateDoctorDaySchemeAsync([FromBody] WeekSchemeDto weekSchemeDto)
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
         if (userId == null)

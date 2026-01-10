@@ -3,7 +3,7 @@
 public class ToothStatusOutDto
 {
     public int StatusId { get; set; }
-    public string StatusName { get; set; }
+    public required string StatusName { get; set; }
     public int CategoryId { get; set; }
-    public string CategoryName { get; set; }
+    public required string CategoryName { get; set; }
 }

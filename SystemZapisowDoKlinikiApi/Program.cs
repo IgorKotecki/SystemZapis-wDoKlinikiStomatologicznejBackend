@@ -2,6 +2,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
 using ProjektSemestralnyTinWebApi.Security;
 using SystemZapisowDoKlinikiApi.Controllers;
@@ -45,12 +46,25 @@ builder.Services.AddScoped<IToothService, ToothService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
 
-builder.Services.AddScoped<IEmailService, EmailSender>();
+builder.Services.AddSingleton<IEmailService, EmailSender>();
+
+builder.Services.AddHostedService<DailyService>();
 
 builder.Services.AddHttpContextAccessor();
 
 builder.Logging.ClearProviders();
-builder.Logging.AddOpenTelemetry(x => x.AddConsoleExporter());
+builder.Logging.AddOpenTelemetry(x =>
+{
+    x.IncludeScopes = true;
+    x.IncludeFormattedMessage = true;
+
+    x.AddOtlpExporter(a =>
+    {
+        a.Endpoint = new Uri(builder.Configuration["Otlp:Endpoint"]!);
+        a.Protocol = OtlpExportProtocol.HttpProtobuf;
+        a.Headers = builder.Configuration["Otlp:Headers"]!;
+    });
+});
 
 builder.Logging.AddFilter(
     "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware",
@@ -98,33 +112,6 @@ app.UseAuthorization();
 
 app.UseExceptionHandler();
 
-// app.Use(async (context, next) =>
-// {
-//     var endpoint = context.GetEndpoint();
-//     if (endpoint?.Metadata?.GetMetadata<AuthorizeAttribute>() != null)
-//     {
-//         var authHeader = context.Request.Headers["Authorization"].ToString();
-//         Console.WriteLine($"Auth Header: {authHeader}");
-//         
-//         if (authHeader.StartsWith("Bearer "))
-//         {
-//             var token = authHeader.Substring(7);
-//             var handler = new JwtSecurityTokenHandler();
-//             
-//             if (handler.CanReadToken(token))
-//             {
-//                 var jwtToken = handler.ReadJwtToken(token);
-//                 var exp = jwtToken.ValidTo;
-//                 Console.WriteLine($"Token exp: {exp}, UTC Now: {DateTime.UtcNow}");
-//                 Console.WriteLine($"Is expired: {exp < DateTime.UtcNow}");
-//             }
-//         }
-//     }
-//     
-//     await next();
-// });
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

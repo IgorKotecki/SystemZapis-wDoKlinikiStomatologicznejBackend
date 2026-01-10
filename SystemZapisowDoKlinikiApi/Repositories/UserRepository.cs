@@ -13,7 +13,7 @@ public class UserRepository : IUserRepository
         _context = context;
     }
 
-    public async Task<int> CreateGuestUserAsync(string name, string surname, string email, string phoneNumber)
+    public async Task<User> CreateGuestUserAsync(string name, string surname, string email, string phoneNumber)
     {
         var user = new User
         {
@@ -24,7 +24,7 @@ public class UserRepository : IUserRepository
             RolesId = 4
         };
         _context.Users.Add(user);
-        return await _context.SaveChangesAsync().ContinueWith(_ => user.Id);
+        return await _context.SaveChangesAsync().ContinueWith(_ => user);
     }
 
     public async Task<User?> GetUserByEmailAsync(string email)
@@ -32,7 +32,7 @@ public class UserRepository : IUserRepository
         //TODO pamietac ze podzszywac sie moze ktos i trzba potwierzdzic mailowo 
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
-    
+
     public async Task<UserDTO?> GetUserByIdAsync(int id)
     {
         return await _context.Users

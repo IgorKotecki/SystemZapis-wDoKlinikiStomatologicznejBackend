@@ -1,6 +1,6 @@
 ﻿namespace SystemZapisowDoKlinikiApi.DTO;
 
-public class WeekSchemeDTO
+public class WeekSchemeDto
 {
-    public List<DaySchemeDto> DaysSchemes { get; set; }
+    public List<DaySchemeDto> DaysSchemes { get; set; } = new List<DaySchemeDto>();
 }

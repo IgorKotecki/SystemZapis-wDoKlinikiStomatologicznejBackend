@@ -120,17 +120,31 @@ public class AppointmentController : ControllerBase
     {
         _logger.LogInformation("Creating additional information entry by doctor.");
 
-        await _appointmentService.CreateAddInformationAsync(addInformationDto);
-        return Ok("Additional information added successfully.");
+        var newAddInfo = await _appointmentService.CreateAddInformationAsync(addInformationDto);
+
+        return CreatedAtAction(
+            "GetAddInformationById",
+            new { id = newAddInfo.Id },
+            newAddInfo);
+    }
+
+    [HttpGet("doctor/additional-information/{id}")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> GetAddInformationByIdAsync([FromRoute] int id, string lang)
+    {
+        _logger.LogInformation("Retrieving additional information entry with id: {Id}", id);
+        var additionalInfo = await _appointmentService.GetAddInformationByIdAsync(id, lang);
+        return Ok(additionalInfo);
     }
 
     [HttpGet("doctor/additional-information")]
     [Authorize(Roles = "Doctor")]
-    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync([FromQuery] string lang)
+    public async Task<IActionResult> GetAddInformationAsync([FromQuery] string lang)
     {
         _logger.LogInformation("Retrieving additional information entries for doctor with language preference: {Lang}",
             lang);
-        return await _appointmentService.GetAddInformationAsync(lang);
+        var additionalInfo = await _appointmentService.GetAddInformationAsync(lang);
+        return Ok(additionalInfo);
     }
 
     [HttpPut("doctor/additional-information")]

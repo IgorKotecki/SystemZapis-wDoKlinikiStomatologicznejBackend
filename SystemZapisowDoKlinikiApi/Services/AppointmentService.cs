@@ -1,3 +1,4 @@
+using ProjektSemestralnyTinWebApi.Security;
 using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
@@ -10,13 +11,15 @@ public class AppointmentService : IAppointmentService
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IUserService _userService;
     private readonly ITimeBlockService _timeBlockService;
+    private readonly IEmailService _emailService;
 
     public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
-        ITimeBlockService timeBlockService)
+        ITimeBlockService timeBlockService, IEmailService emailService)
     {
         _appointmentRepository = appointmentRepository;
         _userService = userService;
         _timeBlockService = timeBlockService;
+        _emailService = emailService;
     }
 
     public async Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest)
@@ -27,10 +30,10 @@ public class AppointmentService : IAppointmentService
         }
 
         var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
-        var userId = 0;
+
         if (user == null)
         {
-            userId = await _userService.CreateGuestUserAsync(
+            user = await _userService.CreateGuestUserAsync(
                 appointmentRequest.Name,
                 appointmentRequest.Surname,
                 appointmentRequest.Email,
@@ -40,10 +43,21 @@ public class AppointmentService : IAppointmentService
         else
         {
             CheckUserDataForAppointment(appointmentRequest, user);
-            userId = user.Id;
         }
 
-        await _appointmentRepository.CreateAppointmentGuestAsync(appointmentRequest, userId);
+        var bookAppointmentRequestDto = new BookAppointmentRequestDTO
+        {
+            DoctorId = appointmentRequest.DoctorId,
+            StartTime = appointmentRequest.StartTime,
+            Duration = appointmentRequest.Duration,
+            ServicesIds = appointmentRequest.ServicesIds
+        };
+
+
+        await _appointmentRepository.CreateAppointmentGuestAsync(bookAppointmentRequestDto, user.Id);
+
+        await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
+            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {appointmentRequest.StartTime}.\n\nBest regards,\nClinic Team");
     }
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang)
@@ -77,12 +91,23 @@ public class AppointmentService : IAppointmentService
         BookAppointmentRequestDTO bookAppointmentRequestDto)
     {
         await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
+
+        var user = await _userService.GetUserByIdAsync(userId);
+
+        if (user == null)
+        {
+            throw new InvalidOperationException("User should not be null at this point.");
+        }
+
+        await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
+            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {bookAppointmentRequestDto.StartTime}.\n\nBest regards,\nClinic Team");
     }
 
-    public async Task CreateAddInformationAsync(AddInformationDto addInformationDto)
+    public async Task<AddInformationOutDto> CreateAddInformationAsync(AddInformationDto addInformationDto)
     {
         CheckAddInformationDto(addInformationDto);
-        await _appointmentRepository.CreateAddInformationAsync(addInformationDto);
+        var newAddIfno = await _appointmentRepository.CreateAddInformationAsync(addInformationDto);
+        return newAddIfno;
     }
 
     public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
@@ -120,6 +145,16 @@ public class AppointmentService : IAppointmentService
         return appointments;
     }
 
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDate(string lang, DateTime date)
+    {
+        return await _appointmentRepository.GetAppointmentsByDateAsync(lang, date);
+    }
+
+    public Task<AddInformationOutDto> GetAddInformationByIdAsync(int id, string lang)
+    {
+        return _appointmentRepository.GetAddInformationByIdAsync(id, lang);
+    }
+
     private void CheckAddInformationDto(AddInformationDto addInformationDto)
     {
         if (addInformationDto == null)
@@ -152,7 +187,7 @@ public class AppointmentService : IAppointmentService
 
     private static DateTime GetMonday(DateTime date)
     {
-        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+        var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
         return date.AddDays(-diff).Date;
     }
 }

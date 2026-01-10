@@ -4,6 +4,6 @@ namespace SystemZapisowDoKlinikiApi.Services;
 
 public interface IDoctorDaySchemeService
 {
-    public Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDTO weekSchemeDto);
-    public Task<WeekSchemeDTO> GetDoctorWeekSchemeAsync(int userId);
+    public Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDto weekSchemeDto);
+    public Task<WeekSchemeDto> GetDoctorWeekSchemeAsync(int userId);
 }

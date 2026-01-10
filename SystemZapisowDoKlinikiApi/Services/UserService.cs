@@ -13,7 +13,7 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
-    public Task<int> CreateGuestUserAsync(string name, string surname, string email, string phoneNumber)
+    public Task<User> CreateGuestUserAsync(string name, string surname, string email, string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(surname) ||
             string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phoneNumber))
@@ -49,8 +49,8 @@ public class UserService : IUserService
         user.Name = dto.Name;
         user.Surname = dto.Surname;
         user.PhoneNumber = dto.PhoneNumber;
-        user.Email = dto.email;
-        user.PhotoURL = dto.PhotoURL;
+        user.Email = dto.Email;
+        user.PhotoURL = dto.PhotoUrl;
 
         await _userRepository.UpdateUserAsync(user);
 

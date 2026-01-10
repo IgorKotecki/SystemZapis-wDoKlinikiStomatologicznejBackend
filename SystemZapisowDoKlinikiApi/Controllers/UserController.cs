@@ -46,7 +46,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("all-users")]
-    [Authorize(Roles = "Admin,Receptionist")]
+    [Authorize(Roles = "Admin,Receptionist,Doctor")]
     public async Task<IActionResult> GetAllUsers()
     {
         var users = await _userService.GetAllUsersAsync();
@@ -55,7 +55,7 @@ public class UserController : ControllerBase
 
         return Ok(users);
     }
-    
+
     [HttpDelete("delete/{userId}")]
     public async Task<IActionResult> DeleteUser(int userId)
     {

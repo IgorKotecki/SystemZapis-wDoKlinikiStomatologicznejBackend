@@ -12,12 +12,12 @@ public class DoctorDaySchemeService : IDoctorDaySchemeService
         _DoctorDaySchemeRepository = doctorDaySchemeRepository;
     }
 
-    public async Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDTO weekSchemeDto)
+    public async Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDto weekSchemeDto)
     {
         await _DoctorDaySchemeRepository.UpdateDoctorWeekSchemeAsync(doctorId, weekSchemeDto);
     }
 
-    public async Task<WeekSchemeDTO> GetDoctorWeekSchemeAsync(int userId)
+    public async Task<WeekSchemeDto> GetDoctorWeekSchemeAsync(int userId)
     {
         return await _DoctorDaySchemeRepository.GetDoctorWeekSchemeAsync(userId);
     }

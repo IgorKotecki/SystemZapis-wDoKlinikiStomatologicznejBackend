@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Services;
 
@@ -26,5 +28,20 @@ public class TimeBlocksController : ControllerBase
             timeBlocks.Count, doctorId, date.ToString());
 
         return Ok(timeBlocks);
+    }
+
+    [HttpGet("time-blocks/working-hours")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> GetWorkingHours([FromQuery] DateTime date)
+    {
+        var doctorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                 ?? throw new UnauthorizedAccessException("User ID not found in claims"));
+
+        var workingHours = await _timeBlockService.GetWorkingHoursAsync(doctorId, date);
+
+        _logger.LogInformation("Retrieved working hours for doctor with id: {DoctorId} on date: {Date}",
+            doctorId, date.ToString());
+
+        return Ok(workingHours);
     }
 }

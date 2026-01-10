@@ -79,12 +79,13 @@ public class AuthenticationController : ControllerBase
     public async Task<IActionResult> LoginUserAsync(LoginRequest model)
     {
         var user = await _context.Users.Include(user => user.Roles).FirstOrDefaultAsync(u => u.Email == model.Email);
-        if (user == null)
+
+        if (ValidateUser(user))
         {
             return Unauthorized();
         }
 
-        var hashedPassword = SecurityHelper.GetHashedPasswordWithSalt(model.Password, user.Salt);
+        var hashedPassword = SecurityHelper.GetHashedPasswordWithSalt(model.Password, user!.Salt!);
         if (user.Password != hashedPassword)
         {
             return Unauthorized();
@@ -93,8 +94,8 @@ public class AuthenticationController : ControllerBase
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Roles.Name)
+            new Claim(ClaimTypes.Email, user.Email!),
+            new Claim(ClaimTypes.Role, user.Roles.Name!)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -123,28 +124,53 @@ public class AuthenticationController : ControllerBase
         });
     }
 
+    private bool ValidateUser(User? user)
+    {
+        if (user == null)
+        {
+            return true;
+        }
+
+        if (user.Salt == null)
+        {
+            return true;
+        }
+
+        if (user.Email == null)
+        {
+            return true;
+        }
+
+        if (user.Roles.Name == null)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     [AllowAnonymous]
     [HttpPost("refresh")]
     public async Task<IActionResult> RefreshTokenAsync(RefreshTokenRequest model)
     {
         var user = await _context.Users.Include(user => user.Roles)
-            .FirstOrDefaultAsync(u => u.RefreshToken.Trim() == model.RefreshToken.Trim());
+            .FirstOrDefaultAsync(u => u.RefreshToken!.Trim() == model.RefreshToken.Trim());
 
-        if (user == null)
+        if (ValidateUser(user))
         {
-            throw new SecurityTokenExpiredException("UserNotFound");
+            return Unauthorized();
         }
 
-        if (user.RefreshTokenExpDate < DateTime.UtcNow)
+        if (user!.RefreshTokenExpDate < DateTime.UtcNow)
         {
-            throw new SecurityTokenExpiredException("Invalid refresh token");
+            return Unauthorized();
         }
 
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Role, user.Roles.Name)
+            new Claim(ClaimTypes.Email, user.Email!),
+            new Claim(ClaimTypes.Role, user.Roles.Name!)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
@@ -191,7 +217,7 @@ public class AuthenticationController : ControllerBase
 
         var claims = new[]
         {
-            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Email, user!.Email!),
             new Claim("purpose", "passwordReset")
         };
 

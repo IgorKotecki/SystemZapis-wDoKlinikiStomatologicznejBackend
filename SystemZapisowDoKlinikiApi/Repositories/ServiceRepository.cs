@@ -18,7 +18,6 @@ public class ServiceRepository : IServiceRepository
     [AllowAnonymous]
     public async Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang)
     {
-        Console.WriteLine($"Fetching services for language: {lang}");
         return await _context.Services
             .Where(s => s.Roles.Any(r => r.Name == "Registered_user" || r.Name == "Unregistered_user"))
             .Select(s => new ServiceDTO()
@@ -95,10 +94,10 @@ public class ServiceRepository : IServiceRepository
             }
 
             List<Role> roles;
-            if (!addServiceDto.rolePermissionIds.IsNullOrEmpty())
+            if (!addServiceDto.RolePermissionIds.IsNullOrEmpty())
             {
                 roles = await _context.Roles
-                    .Where(r => addServiceDto.rolePermissionIds.Contains(r.Id))
+                    .Where(r => addServiceDto.RolePermissionIds.Contains(r.Id))
                     .ToListAsync();
                 if (roles.IsNullOrEmpty())
                 {
@@ -309,7 +308,7 @@ public class ServiceRepository : IServiceRepository
             .ToListAsync();
     }
 
-    public async Task<ICollection<Service?>> GetAllServicesAsync()
+    public async Task<List<Service>> GetAllServicesAsync()
     {
         return await _context.Services.ToListAsync();
     }

@@ -11,7 +11,7 @@ public class TeamService : ITeamService
     public TeamService(ITeamRepository teamRepository, IConfiguration configuration)
     {
         _teamRepository = teamRepository;
-        _cloudName = configuration["Cloudinary:CloudName"];
+        _cloudName = configuration["Cloudinary:CloudName"]!;
     }
 
     public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
