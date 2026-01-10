@@ -17,14 +17,14 @@ public class TeamService : ITeamService
     public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
     {
         var members = await _teamRepository.GetAllTeamMembersAsync();
-        foreach (var member in members)
+        /*foreach (var member in members)
         {
             if (!string.IsNullOrEmpty(member.PhotoURL))
             {
                 member.PhotoURL =
                     $"https://res.cloudinary.com/{_cloudName}/image/upload/q_auto,f_auto/{member.PhotoURL}.jpg";
             }
-        }
+        }*/
 
         return members;
     }
