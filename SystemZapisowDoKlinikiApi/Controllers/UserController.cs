@@ -47,9 +47,10 @@ public class UserController : ControllerBase
 
     [HttpGet("all-users")]
     [Authorize(Roles = "Admin,Receptionist,Doctor")]
-    public async Task<IActionResult> GetAllUsers()
+    public async Task<IActionResult> GetAllUsers([FromQuery] int page = 0, [FromQuery] int pageSize = 10,
+        [FromQuery] string? searchTerm = null)
     {
-        var users = await _userService.GetAllUsersAsync();
+        var users = await _userService.GetAllUsersAsync(page, pageSize, searchTerm);
 
         _logger.LogInformation("Retrieved all users.");
 

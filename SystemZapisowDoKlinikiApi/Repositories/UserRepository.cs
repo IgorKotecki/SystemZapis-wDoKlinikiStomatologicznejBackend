@@ -64,19 +64,39 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<ICollection<UserDTO>> GetAllUsersAsync()
+    public async Task<object> GetAllUsersAsync(int page, int pageSize, string? searchTerm = null)
     {
-        return await _context.Users
-            .Where(u => u.RolesId == 3 || u.RolesId == 4)
+        var query = _context.Users
+            .Where(u => u.RolesId == 3 || u.RolesId == 4);
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            searchTerm = searchTerm.ToLower();
+            query = query.Where(u =>
+                u.Name!.ToLower().Contains(searchTerm) ||
+                u.Surname!.ToLower().Contains(searchTerm) ||
+                u.Email!.ToLower().Contains(searchTerm) ||
+                (u.PhoneNumber != null && u.PhoneNumber.Contains(searchTerm))
+            );
+        }
+
+        var totalCount = await query.CountAsync();
+        var users = await query
+            .Skip(page * pageSize)
+            .Take(pageSize)
             .Select(u => new UserDTO()
             {
+                Email = u.Email,
                 Id = u.Id,
                 Name = u.Name,
                 Surname = u.Surname,
-                Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
+                RoleName = u.Roles!.Name,
+                PhotoURL = u.PhotoURL
             })
             .ToListAsync();
+
+        return new { users, totalCount };
     }
 
     public async Task DeleteUserAsync(int userId)

@@ -66,9 +66,9 @@ public class UserService : IUserService
         };
     }
 
-    public async Task<ICollection<UserDTO>> GetAllUsersAsync()
+    public async Task<object> GetAllUsersAsync(int page, int pageSize, string? searchTerm = null)
     {
-        return await _userRepository.GetAllUsersAsync();
+        return await _userRepository.GetAllUsersAsync(page, pageSize, searchTerm);
     }
 
     public Task DeleteUserAsync(int userId)

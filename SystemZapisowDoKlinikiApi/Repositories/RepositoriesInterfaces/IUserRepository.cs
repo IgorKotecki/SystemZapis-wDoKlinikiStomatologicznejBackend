@@ -10,6 +10,6 @@ public interface IUserRepository
     public Task<UserDTO?> GetUserByIdAsync(int id);
     public Task<User?> GetByIdAsync(int id);
     public Task UpdateUserAsync(User user);
-    Task<ICollection<UserDTO>> GetAllUsersAsync();
+    Task<object> GetAllUsersAsync(int page, int pageSize, string? searchTerm);
     public Task DeleteUserAsync(int userId);
 }
