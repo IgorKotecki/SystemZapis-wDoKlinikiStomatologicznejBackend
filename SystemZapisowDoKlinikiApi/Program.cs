@@ -34,6 +34,7 @@ builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IToothRepository, ToothRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<ICloudinaryRepository, CloudinaryRepository>();
+builder.Services.AddScoped<IAdditionalInformationRepository, AdditionalInformationRepository>();
 
 // Services
 builder.Services.AddScoped<ITimeBlockService, TimeBlockService>();
@@ -45,6 +46,7 @@ builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IToothService, ToothService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ICloudinaryService, CloudinaryService>();
+builder.Services.AddScoped<IAdditionalInformationService, AdditionalInformationService>();
 
 builder.Services.AddSingleton<IEmailService, EmailSender>();
 

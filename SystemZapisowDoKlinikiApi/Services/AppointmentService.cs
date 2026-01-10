@@ -103,17 +103,6 @@ public class AppointmentService : IAppointmentService
             $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {bookAppointmentRequestDto.StartTime}.\n\nBest regards,\nClinic Team");
     }
 
-    public async Task<AddInformationOutDto> CreateAddInformationAsync(AddInformationDto addInformationDto)
-    {
-        CheckAddInformationDto(addInformationDto);
-        var newAddIfno = await _appointmentRepository.CreateAddInformationAsync(addInformationDto);
-        return newAddIfno;
-    }
-
-    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
-    {
-        return await _appointmentRepository.GetAddInformationAsync(lang);
-    }
 
     public async Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto)
     {
@@ -150,28 +139,6 @@ public class AppointmentService : IAppointmentService
         return await _appointmentRepository.GetAppointmentsByDateAsync(lang, date);
     }
 
-    public Task<AddInformationOutDto> GetAddInformationByIdAsync(int id, string lang)
-    {
-        return _appointmentRepository.GetAddInformationByIdAsync(id, lang);
-    }
-
-    private void CheckAddInformationDto(AddInformationDto addInformationDto)
-    {
-        if (addInformationDto == null)
-        {
-            throw new ArgumentNullException(nameof(addInformationDto), "AddInformationDto cannot be null.");
-        }
-
-        if (addInformationDto.BodyPl == null || addInformationDto.BodyPl.Trim() == "")
-        {
-            throw new ArgumentException("BodyPlan cannot be null or empty.", nameof(addInformationDto.BodyPl));
-        }
-
-        if (addInformationDto.BodyEn == null || addInformationDto.BodyEn.Trim() == "")
-        {
-            throw new ArgumentException("BodyEn cannot be null or empty.", nameof(addInformationDto.BodyEn));
-        }
-    }
 
     private void CheckUserDataForAppointment(AppointmentRequest appointmentRequest, User user)
     {

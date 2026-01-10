@@ -6,4 +6,5 @@ public interface IDoctorDaySchemeRepository
 {
     public Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDto weekSchemeDto);
     Task<WeekSchemeDto> GetDoctorWeekSchemeAsync(int UserId);
+    Task<DateTime> GetNextScheduledDayAsync(int doctorId);
 }

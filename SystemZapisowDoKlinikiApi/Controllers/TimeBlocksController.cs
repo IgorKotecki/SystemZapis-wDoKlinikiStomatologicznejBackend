@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Globalization;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SystemZapisowDoKlinikiApi.DTO;
@@ -7,7 +8,7 @@ using SystemZapisowDoKlinikiApi.Services;
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
 [ApiController]
-[Route("api")]
+[Route("api/time-blocks")]
 public class TimeBlocksController : ControllerBase
 {
     private readonly ITimeBlockService _timeBlockService;
@@ -19,7 +20,7 @@ public class TimeBlocksController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("time-blocks/{doctorId}")]
+    [HttpGet("{doctorId}")]
     public async Task<IActionResult> GetTimeBlocks(int doctorId, [FromQuery] DateRequest date)
     {
         var timeBlocks = await _timeBlockService.GetTimeBlocksAsync(doctorId, date);
@@ -30,7 +31,7 @@ public class TimeBlocksController : ControllerBase
         return Ok(timeBlocks);
     }
 
-    [HttpGet("time-blocks/working-hours")]
+    [HttpGet("working-hours")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> GetWorkingHours([FromQuery] DateTime date)
     {
@@ -45,7 +46,7 @@ public class TimeBlocksController : ControllerBase
         return Ok(workingHours);
     }
 
-    [HttpDelete("time-blocks/working-hours")]
+    [HttpDelete("working-hours")]
     [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> DeleteWorkingHoursAsync([FromQuery] DateTime date)
     {
@@ -59,5 +60,22 @@ public class TimeBlocksController : ControllerBase
             doctorId, date.ToString());
 
         return NoContent();
+    }
+
+    [HttpPost("working-hours")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> AddWorkingHoursAsync([FromBody] WorkingHoursDto workingHoursDto)
+    {
+        var doctorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                                 ?? throw new UnauthorizedAccessException("User ID not found in claims"));
+
+        await _timeBlockService.AddWorkingHoursAsync(doctorId, workingHoursDto);
+
+        _logger.LogInformation(
+            "Added working hours for doctor with id: {DoctorId} on date: {Date} - StartTime: {StartTime} - EndTime: {EndTime}",
+            doctorId, workingHoursDto.StartTime.Date.ToString(CultureInfo.InvariantCulture),
+            workingHoursDto.StartTime.TimeOfDay, workingHoursDto.EndTime.TimeOfDay);
+
+        return CreatedAtAction(nameof(GetWorkingHours), new { date = workingHoursDto.StartTime.Date }, null);
     }
 }

@@ -81,4 +81,11 @@ public class DoctorDaySchemeRepository : IDoctorDaySchemeRepository
         };
         return weekScheme;
     }
+
+    public async Task<DateTime> GetNextScheduledDayAsync(int doctorId)
+    {
+        return await _context.DoctorBlocks
+            .Where(db => db.DoctorUser.UserId == doctorId)
+            .MaxAsync(db => db.TimeBlock.TimeEnd);
+    }
 }

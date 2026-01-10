@@ -22,6 +22,11 @@ public class DoctorDaySchemeService : IDoctorDaySchemeService
         return await _DoctorDaySchemeRepository.GetDoctorWeekSchemeAsync(userId);
     }
 
+    public async Task<DateTime> GetNextScheduledDayAsync(int doctorId)
+    {
+        return await _DoctorDaySchemeRepository.GetNextScheduledDayAsync(doctorId);
+    }
+
     private bool IsValidDayOfWeek(int dayOfWeek)
     {
         return dayOfWeek >= 0 && dayOfWeek <= 6;

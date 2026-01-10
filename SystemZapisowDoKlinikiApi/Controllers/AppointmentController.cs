@@ -66,7 +66,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpPost("receptionist/appointment")]
-    [Authorize(Roles = "Receptionist,Admin")]
+    [Authorize(Roles = "Receptionist,Doctor")]
     public async Task<IActionResult> BookAppointmentForRegisteredUserByReceptionistAsync(
         [FromBody] BookAppointmentRequestWithUserIdDto bookAppointmentRequestByReceptionistDto)
     {
@@ -112,39 +112,6 @@ public class AppointmentController : ControllerBase
         var appointments = await _appointmentService.GetAppointmentsForReceptionistAsync(lang, date);
 
         return Ok(appointments);
-    }
-
-    [HttpPost("doctor/additional-information")]
-    [Authorize(Roles = "Doctor")]
-    public async Task<IActionResult> CreateAddInformationAsync([FromBody] AddInformationDto addInformationDto)
-    {
-        _logger.LogInformation("Creating additional information entry by doctor.");
-
-        var newAddInfo = await _appointmentService.CreateAddInformationAsync(addInformationDto);
-
-        return CreatedAtAction(
-            "GetAddInformationById",
-            new { id = newAddInfo.Id },
-            newAddInfo);
-    }
-
-    [HttpGet("doctor/additional-information/{id}")]
-    [Authorize(Roles = "Doctor")]
-    public async Task<IActionResult> GetAddInformationByIdAsync([FromRoute] int id, string lang)
-    {
-        _logger.LogInformation("Retrieving additional information entry with id: {Id}", id);
-        var additionalInfo = await _appointmentService.GetAddInformationByIdAsync(id, lang);
-        return Ok(additionalInfo);
-    }
-
-    [HttpGet("doctor/additional-information")]
-    [Authorize(Roles = "Doctor")]
-    public async Task<IActionResult> GetAddInformationAsync([FromQuery] string lang)
-    {
-        _logger.LogInformation("Retrieving additional information entries for doctor with language preference: {Lang}",
-            lang);
-        var additionalInfo = await _appointmentService.GetAddInformationAsync(lang);
-        return Ok(additionalInfo);
     }
 
     [HttpPut("doctor/additional-information")]

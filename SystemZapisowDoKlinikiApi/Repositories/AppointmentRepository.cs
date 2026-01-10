@@ -133,35 +133,6 @@ public class AppointmentRepository : IAppointmentRepository
         await BookAppointment(bookAppointmentRequestDto, userId);
     }
 
-    public async Task<AddInformationOutDto> CreateAddInformationAsync(AddInformationDto addInformationDto)
-    {
-        var addInformation = new AdditionalInformation
-        {
-            BodyEn = addInformationDto.BodyEn,
-            BodyPl = addInformationDto.BodyPl
-        };
-        _context.AdditionalInformations.Add(addInformation);
-
-        await _context.SaveChangesAsync();
-
-        return new AddInformationOutDto()
-        {
-            Id = addInformation.Id,
-            Body = addInformationDto.language == "pl" ? addInformation.BodyPl : addInformation.BodyEn
-        };
-    }
-
-    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
-    {
-        var addInformations = await _context.AdditionalInformations.ToListAsync();
-        var result = addInformations.Select(ai => new AddInformationOutDto
-        {
-            Id = ai.Id,
-            Body = lang == "pl" ? ai.BodyPl : ai.BodyEn
-        }).ToList();
-        return result;
-    }
-
     public async Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();

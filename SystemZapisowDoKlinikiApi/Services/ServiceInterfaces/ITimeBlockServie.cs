@@ -9,4 +9,5 @@ public interface ITimeBlockService
     Task<bool> CheckIfAvailableTimeBlockAsync(DateTime startTime, int duration);
     Task<List<WorkingHoursDto>> GetWorkingHoursAsync(int doctorId, DateTime date);
     Task DeleteWorkingHoursAsync(int doctorId, DateTime date);
+    Task AddWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto);
 }

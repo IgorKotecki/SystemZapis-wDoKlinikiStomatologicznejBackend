@@ -91,4 +91,21 @@ public class DoctorController : ControllerBase
 
         return Ok(result);
     }
+
+    [HttpGet("next-schedule")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> GetNextScheduledDayAsync()
+    {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+        {
+            return Unauthorized();
+        }
+
+        var nextScheduledDay = await _doctorDaySchemeService.GetNextScheduledDayAsync(int.Parse(userId));
+
+        _logger.LogInformation("Doctor with id: {userId} retrieved their next scheduled day.", userId);
+
+        return Ok(nextScheduledDay);
+    }
 }

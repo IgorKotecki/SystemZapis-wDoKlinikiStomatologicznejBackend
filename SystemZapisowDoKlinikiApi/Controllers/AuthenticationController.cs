@@ -46,32 +46,58 @@ public class AuthenticationController : ControllerBase
 
         if (us != null)
         {
-            return BadRequest();
+            if (us.Password != null)
+            {
+                return Conflict("User with this email already exists.");
+            }
+            else
+            {
+                us.Name = model.Name;
+                us.Surname = model.Surname;
+                us.PhoneNumber = model.PhoneNumber;
+                us.Password = hashedPasswordAndSalt.Item1;
+                us.Salt = hashedPasswordAndSalt.Item2;
+                us.RefreshToken = SecurityHelper.GenerateRefreshToken();
+                us.RefreshTokenExpDate = DateTime.UtcNow.AddDays(1);
+                us.RolesId = 3; // Default role: Registered_User
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("New user registered with id: {userId} and email: {email}", us.Id, us.Email);
+
+                var userId = us.Id;
+
+                await _context.Database.ExecuteSqlRawAsync("EXEC CreateDefaultTeethModelForUser @UserId = {0}", userId);
+
+                return Ok();
+            }
         }
-
-        var user = new User()
+        else
         {
-            Name = model.Name,
-            Surname = model.Surname,
-            Email = model.Email,
-            PhoneNumber = model.PhoneNumber,
-            Password = hashedPasswordAndSalt.Item1,
-            Salt = hashedPasswordAndSalt.Item2,
-            RefreshToken = SecurityHelper.GenerateRefreshToken(),
-            RefreshTokenExpDate = DateTime.UtcNow.AddDays(1),
-            RolesId = 3 // Default role: Registered_User
-        };
+            var user = new User()
+            {
+                Name = model.Name,
+                Surname = model.Surname,
+                Email = model.Email,
+                PhoneNumber = model.PhoneNumber,
+                Password = hashedPasswordAndSalt.Item1,
+                Salt = hashedPasswordAndSalt.Item2,
+                RefreshToken = SecurityHelper.GenerateRefreshToken(),
+                RefreshTokenExpDate = DateTime.UtcNow.AddDays(1),
+                RolesId = 3 // Default role: Registered_User
+            };
 
-        await _context.Users.AddAsync(user);
-        await _context.SaveChangesAsync();
+            await _context.Users.AddAsync(user);
+            await _context.SaveChangesAsync();
 
-        int userId = user.Id;
+            var userId = user.Id;
 
-        await _context.Database.ExecuteSqlRawAsync("EXEC CreateDefaultTeethModelForUser @UserId = {0}", userId);
+            await _context.Database.ExecuteSqlRawAsync("EXEC CreateDefaultTeethModelForUser @UserId = {0}", userId);
 
-        _logger.LogInformation("New user registered with id: {userId} and email: {email}", userId, user.Email);
+            _logger.LogInformation("New user registered with id: {userId} and email: {email}", userId, user.Email);
 
-        return Ok();
+            return Ok();
+        }
     }
 
     [AllowAnonymous]

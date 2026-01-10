@@ -128,6 +128,44 @@ public class TimeBlockRepository : ITimeBlockRepository
         }
     }
 
+    public async Task AddWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var existingBlocks = await _context.DoctorBlocks
+                .Where(db =>
+                    db.DoctorUser.UserId == doctorId &&
+                    db.TimeBlock.TimeStart.Date == workingHoursDto.StartTime.Date)
+                .AnyAsync();
+            if (existingBlocks)
+            {
+                throw new BusinessException("WORKING_HOURS_ALREADY_EXIST",
+                    "Working hours for the specified day already exist.");
+            }
+
+            var timeBlocks = await _context.TimeBlocks
+                .Where(tb => tb.TimeStart >= workingHoursDto.StartTime && tb.TimeEnd <= workingHoursDto.EndTime)
+                .ToListAsync();
+            foreach (var timeBlock in timeBlocks)
+            {
+                _context.DoctorBlocks.Add(new DoctorBlock
+                {
+                    DoctorUserId = doctorId,
+                    TimeBlockId = timeBlock.Id
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
     private List<WorkingHoursDto> MergeContinuousBlocks(List<WorkingHoursDto> blocks)
     {
         var result = new List<WorkingHoursDto>();
