@@ -9,10 +9,11 @@ public interface IAppointmentService
     public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang);
     Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, string lang, DateTime date);
     Task BookAppointmentForRegisteredUserAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto);
-    Task CreateAddInformationAsync(AddInformationDto addInformationDto);
+    Task<AddInformationOutDto> CreateAddInformationAsync(AddInformationDto addInformationDto);
     Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang);
     Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto);
     Task UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto updateAppointmentStatusDto);
     Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(string lang, DateTime date);
     Task<ICollection<AppointmentDto>> GetAppointmentsByDate(string lang, DateTime date);
+    Task<AddInformationOutDto> GetAddInformationByIdAsync(int id, string lang);
 }

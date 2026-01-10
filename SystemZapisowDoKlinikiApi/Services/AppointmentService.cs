@@ -46,7 +46,15 @@ public class AppointmentService : IAppointmentService
             userId = user.Id;
         }
 
-        await _appointmentRepository.CreateAppointmentGuestAsync(appointmentRequest, userId);
+        var bookAppointmentRequestDto = new BookAppointmentRequestDTO
+        {
+            DoctorId = appointmentRequest.DoctorId,
+            StartTime = appointmentRequest.StartTime,
+            Duration = appointmentRequest.Duration,
+            ServicesIds = appointmentRequest.ServicesIds
+        };
+
+        await _appointmentRepository.CreateAppointmentGuestAsync(bookAppointmentRequestDto, userId);
 
         if (user == null)
         {
@@ -100,10 +108,11 @@ public class AppointmentService : IAppointmentService
             $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {bookAppointmentRequestDto.StartTime}.\n\nBest regards,\nClinic Team");
     }
 
-    public async Task CreateAddInformationAsync(AddInformationDto addInformationDto)
+    public async Task<AddInformationOutDto> CreateAddInformationAsync(AddInformationDto addInformationDto)
     {
         CheckAddInformationDto(addInformationDto);
-        await _appointmentRepository.CreateAddInformationAsync(addInformationDto);
+        var newAddIfno = await _appointmentRepository.CreateAddInformationAsync(addInformationDto);
+        return newAddIfno;
     }
 
     public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
@@ -146,6 +155,11 @@ public class AppointmentService : IAppointmentService
         return await _appointmentRepository.GetAppointmentsByDateAsync(lang, date);
     }
 
+    public Task<AddInformationOutDto> GetAddInformationByIdAsync(int id, string lang)
+    {
+        return _appointmentRepository.GetAddInformationByIdAsync(id, lang);
+    }
+
     private void CheckAddInformationDto(AddInformationDto addInformationDto)
     {
         if (addInformationDto == null)
@@ -178,7 +192,7 @@ public class AppointmentService : IAppointmentService
 
     private static DateTime GetMonday(DateTime date)
     {
-        int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
+        var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
         return date.AddDays(-diff).Date;
     }
 }

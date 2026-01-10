@@ -10,4 +10,5 @@ public class AppointmentDto
     public required UserDTO Doctor { get; set; }
     public required ICollection<ServiceDTO> Services { get; set; }
     public required string Status { get; set; }
+    public required ICollection<AddInformationOutDto> AdditionalInformation { get; set; }
 }
