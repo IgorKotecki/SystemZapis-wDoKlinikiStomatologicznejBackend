@@ -76,4 +76,60 @@ public class TimeBlockRepository : ITimeBlockRepository
 
         return true;
     }
+
+    public async Task<List<WorkingHoursDto>> GetWorkingHoursAsync(int doctorId, DateTime monday, DateTime sunday)
+    {
+        var blocks = await _context.DoctorBlocks
+            .Where(db => db.TimeBlock.TimeStart >= monday.Date &&
+                         db.TimeBlock.TimeStart <= sunday.Date &&
+                         db.DoctorUser.UserId == doctorId)
+            .Select(db => new WorkingHoursDto()
+            {
+                StartTime = db.TimeBlock.TimeStart,
+                EndTime = db.TimeBlock.TimeEnd
+            })
+            .OrderBy(b => b.StartTime)
+            .ToListAsync();
+
+        return MergeContinuousBlocks(blocks);
+    }
+
+    private List<WorkingHoursDto> MergeContinuousBlocks(List<WorkingHoursDto> blocks)
+    {
+        var result = new List<WorkingHoursDto>();
+
+        foreach (var dayGroup in blocks.GroupBy(b => b.StartTime.Date))
+        {
+            var sortedBlocks = dayGroup.OrderBy(b => b.StartTime).ToList();
+
+            if (!sortedBlocks.Any()) continue;
+
+            var current = new WorkingHoursDto
+            {
+                StartTime = sortedBlocks[0].StartTime,
+                EndTime = sortedBlocks[0].EndTime
+            };
+
+            for (int i = 1; i < sortedBlocks.Count; i++)
+            {
+                if (sortedBlocks[i].StartTime == current.EndTime)
+                {
+                    current.EndTime = sortedBlocks[i].EndTime;
+                }
+                else
+                {
+                    result.Add(current);
+                    current = new WorkingHoursDto
+                    {
+                        StartTime = sortedBlocks[i].StartTime,
+                        EndTime = sortedBlocks[i].EndTime
+                    };
+                }
+            }
+
+            result.Add(current);
+        }
+
+        return result.OrderBy(r => r.StartTime).ToList();
+    }
 }
