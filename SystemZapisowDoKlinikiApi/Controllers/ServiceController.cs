@@ -43,7 +43,7 @@ public class ServiceController : ControllerBase
     }
 
     [HttpGet("receptionist-services")]
-    [Authorize(Roles = "Receptionist,Admin")]
+    [Authorize(Roles = "Receptionist,Admin,Doctor")]
     public async Task<ActionResult<ICollection<ServiceDTO>>> GetAllServicesForReceptionistAsync([FromQuery] string lang)
     {
         var services = await _serviceService.GetAllServicesForReceptionistAsync(lang);

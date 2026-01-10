@@ -66,7 +66,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpPost("receptionist/appointment")]
-    [Authorize(Roles = "Receptionist,Admin")]
+    [Authorize(Roles = "Receptionist,Admin,Doctor")]
     public async Task<IActionResult> BookAppointmentForRegisteredUserByReceptionistAsync(
         [FromBody] BookAppointmentRequestWithUserIdDto bookAppointmentRequestByReceptionistDto)
     {

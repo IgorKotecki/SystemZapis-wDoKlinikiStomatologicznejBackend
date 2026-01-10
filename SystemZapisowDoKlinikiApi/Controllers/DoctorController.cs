@@ -83,6 +83,7 @@ public class DoctorController : ControllerBase
     }
 
     [HttpGet]
+    //JEZELI BEDZIESZ TU DODWAŁ COS TO ROLA DOCTOR I RECEPtionist musza byc 
     public async Task<IActionResult> GetDoctorsAsync()
     {
         var result = await _doctorService.GetDoctorsAsync();
