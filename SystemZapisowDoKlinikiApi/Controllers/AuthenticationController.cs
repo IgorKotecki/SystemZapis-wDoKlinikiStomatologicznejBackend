@@ -207,7 +207,7 @@ public class AuthenticationController : ControllerBase
         }
 
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == model.Email);
-        if (ValidateUser(user))
+        if (user == null)
         {
             return BadRequest();
         }

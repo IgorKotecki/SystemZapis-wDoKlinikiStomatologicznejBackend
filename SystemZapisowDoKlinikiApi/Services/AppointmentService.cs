@@ -30,10 +30,10 @@ public class AppointmentService : IAppointmentService
         }
 
         var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
-        var userId = 0;
+
         if (user == null)
         {
-            userId = await _userService.CreateGuestUserAsync(
+            user = await _userService.CreateGuestUserAsync(
                 appointmentRequest.Name,
                 appointmentRequest.Surname,
                 appointmentRequest.Email,
@@ -43,7 +43,6 @@ public class AppointmentService : IAppointmentService
         else
         {
             CheckUserDataForAppointment(appointmentRequest, user);
-            userId = user.Id;
         }
 
         var bookAppointmentRequestDto = new BookAppointmentRequestDTO
@@ -54,12 +53,8 @@ public class AppointmentService : IAppointmentService
             ServicesIds = appointmentRequest.ServicesIds
         };
 
-        await _appointmentRepository.CreateAppointmentGuestAsync(bookAppointmentRequestDto, userId);
 
-        if (user == null)
-        {
-            throw new InvalidOperationException("User should not be null at this point.");
-        }
+        await _appointmentRepository.CreateAppointmentGuestAsync(bookAppointmentRequestDto, user.Id);
 
         await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
             $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {appointmentRequest.StartTime}.\n\nBest regards,\nClinic Team");

@@ -13,7 +13,7 @@ public class UserService : IUserService
         _userRepository = userRepository;
     }
 
-    public Task<int> CreateGuestUserAsync(string name, string surname, string email, string phoneNumber)
+    public Task<User> CreateGuestUserAsync(string name, string surname, string email, string phoneNumber)
     {
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(surname) ||
             string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phoneNumber))
