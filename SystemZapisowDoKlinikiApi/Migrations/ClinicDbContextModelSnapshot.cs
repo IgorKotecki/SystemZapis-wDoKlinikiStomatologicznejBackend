@@ -141,6 +141,11 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.Property<int>("AppointmentStatusId")
                         .HasColumnType("int");
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("cancellation_reason");
+
                     b.Property<int>("DoctorBlockId")
                         .HasColumnType("int")
                         .HasColumnName("Doctor_block_id");
@@ -231,13 +236,11 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                         .HasColumnName("img_path");
 
                     b.Property<string>("SpecializationEn")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("specialization_en");
 
                     b.Property<string>("SpecializationPl")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("specialization_pl");
@@ -608,13 +611,11 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Email")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)")
                         .HasColumnName("email");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("name");
@@ -625,7 +626,6 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                         .HasColumnName("password");
 
                     b.Property<string>("PhoneNumber")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)")
                         .HasColumnName("phone_number");
@@ -654,7 +654,6 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                         .HasColumnName("salt");
 
                     b.Property<string>("Surname")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)")
                         .HasColumnName("surname");

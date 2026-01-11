@@ -11,6 +11,8 @@ public partial class Appointment
     public string? AppointmentGroupId { get; set; }
     public int AppointmentStatusId { get; set; }
 
+    public string? CancellationReason { get; set; }
+
     public virtual DoctorBlock DoctorBlock { get; set; } = null!;
 
     public virtual User User { get; set; } = null!;

@@ -135,4 +135,15 @@ public class AppointmentController : ControllerBase
         await _appointmentService.UpdateAppointmentStatusAsync(updateAppointmentStatusDto);
         return Ok("Appointment status updated successfully.");
     }
+
+    [HttpPut("cancel-appointment")]
+    [Authorize(Roles = "Registered_user,Doctor,Admin,Receptionist")]
+    public async Task<IActionResult> CancelAppointmentAsync(
+        [FromBody] CancellationDto cancellationDto)
+    {
+        _logger.LogInformation("Cancelling appointment with id: {AppointmentId}, reason: {Reason}",
+            cancellationDto.AppointmentGuid, cancellationDto.Reason);
+        await _appointmentService.CancelAppointmentAsync(cancellationDto);
+        return Ok("Appointment cancelled successfully.");
+    }
 }

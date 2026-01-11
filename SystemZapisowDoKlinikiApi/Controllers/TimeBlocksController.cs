@@ -48,16 +48,16 @@ public class TimeBlocksController : ControllerBase
 
     [HttpDelete("working-hours")]
     [Authorize(Roles = "Doctor")]
-    public async Task<IActionResult> DeleteWorkingHoursAsync([FromQuery] DateTime date)
+    public async Task<IActionResult> DeleteWorkingHoursAsync([FromBody] WorkingHoursDto workingHoursDto)
     {
         var doctorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value
                                  ?? throw new UnauthorizedAccessException("User ID not found in claims"));
 
 
-        await _timeBlockService.DeleteWorkingHoursAsync(doctorId, date);
+        await _timeBlockService.DeleteWorkingHoursAsync(doctorId, workingHoursDto);
 
-        _logger.LogInformation("Deleted working hours for doctor with id: {DoctorId} on date: {Date}",
-            doctorId, date.ToString());
+        _logger.LogInformation("Deleted working hours for doctor with id: {DoctorId}",
+            doctorId);
 
         return NoContent();
     }

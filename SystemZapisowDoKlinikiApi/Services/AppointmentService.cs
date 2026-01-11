@@ -139,6 +139,11 @@ public class AppointmentService : IAppointmentService
         return await _appointmentRepository.GetAppointmentsByDateAsync(lang, date);
     }
 
+    public async Task CancelAppointmentAsync(CancellationDto cancellationDto)
+    {
+        await _appointmentRepository.CancelAppointmentAsync(cancellationDto);
+    }
+
 
     private void CheckUserDataForAppointment(AppointmentRequest appointmentRequest, User user)
     {

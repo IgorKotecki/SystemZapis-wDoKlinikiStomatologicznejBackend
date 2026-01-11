@@ -244,6 +244,34 @@ public class AppointmentRepository : IAppointmentRepository
             .ToList();
     }
 
+    public async Task CancelAppointmentAsync(CancellationDto cancellationDto)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            await UpdateAppointmentStatusAsync(new UpdateAppointmentStatusDto
+            {
+                AppointmentId = cancellationDto.AppointmentGuid,
+                StatusId = 4
+            });
+            var appointments = await _context.Appointments
+                .Where(a => a.AppointmentGroupId == cancellationDto.AppointmentGuid)
+                .ToListAsync();
+
+            foreach (var appointment in appointments)
+            {
+                appointment.CancellationReason = cancellationDto.Reason;
+            }
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
 
     private IQueryable<Appointment> GetAppointmentsQuery()
     {

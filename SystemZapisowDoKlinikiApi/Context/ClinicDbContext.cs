@@ -80,6 +80,8 @@ public partial class ClinicDbContext : DbContext
             entity.Property(e => e.UserId).HasColumnName("User_id");
             entity.Property(e => e.AppointmentGroupId).HasColumnName("Appointment_Group_Id").HasMaxLength(40)
                 .IsRequired(false);
+            entity.Property(e => e.CancellationReason).HasColumnName("cancellation_reason").HasMaxLength(500)
+                .IsRequired(false);
 
             entity.HasOne(d => d.DoctorBlock).WithMany(p => p.Appointments)
                 .HasForeignKey(d => d.DoctorBlockId)

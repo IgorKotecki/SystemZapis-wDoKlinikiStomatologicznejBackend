@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Models;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
@@ -94,31 +93,30 @@ public class TimeBlockRepository : ITimeBlockRepository
         return MergeContinuousBlocks(blocks);
     }
 
-    public async Task DeleteWorkingHoursAsync(int doctorId, DateTime date)
+    public async Task DeleteWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var hasAppointments = await _context.DoctorBlocks
-                .Where(db =>
-                    db.DoctorUser.UserId == doctorId &&
-                    db.TimeBlock.TimeStart.Date == date.Date)
-                .AnyAsync(db => db.Appointments.Any());
+            var timeBlocksInRange = await _context.TimeBlocks
+                .Where(tb => tb.TimeStart >= workingHoursDto.StartTime && tb.TimeEnd <= workingHoursDto.EndTime)
+                .Select(tb => tb.Id)
+                .ToListAsync();
 
-            if (hasAppointments)
-            {
-                throw new BusinessException("DAY_HAS_APPOINTMENTS",
-                    "Cannot delete working hours for the day that has appointments.");
-            }
 
             var blocksToDelete = await _context.DoctorBlocks
                 .Where(db =>
                     db.DoctorUser.UserId == doctorId &&
-                    db.TimeBlock.TimeStart.Date == date.Date)
+                    timeBlocksInRange.Contains(db.TimeBlockId) &&
+                    !db.Appointments.Any())
                 .ToListAsync();
 
-            _context.DoctorBlocks.RemoveRange(blocksToDelete);
-            await _context.SaveChangesAsync();
+            if (blocksToDelete.Any())
+            {
+                _context.DoctorBlocks.RemoveRange(blocksToDelete);
+                await _context.SaveChangesAsync();
+            }
+
             await transaction.CommitAsync();
         }
         catch
@@ -133,30 +131,33 @@ public class TimeBlockRepository : ITimeBlockRepository
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            var existingBlocks = await _context.DoctorBlocks
-                .Where(db =>
-                    db.DoctorUser.UserId == doctorId &&
-                    db.TimeBlock.TimeStart.Date == workingHoursDto.StartTime.Date)
-                .AnyAsync();
-            if (existingBlocks)
-            {
-                throw new BusinessException("WORKING_HOURS_ALREADY_EXIST",
-                    "Working hours for the specified day already exist.");
-            }
-
-            var timeBlocks = await _context.TimeBlocks
+            var timeBlocksToAdd = await _context.TimeBlocks
                 .Where(tb => tb.TimeStart >= workingHoursDto.StartTime && tb.TimeEnd <= workingHoursDto.EndTime)
+                .Select(tb => tb.Id)
                 .ToListAsync();
-            foreach (var timeBlock in timeBlocks)
+
+            var existingBlockIds = await _context.DoctorBlocks
+                .Where(db => db.DoctorUser.UserId == doctorId && timeBlocksToAdd.Contains(db.TimeBlockId))
+                .Select(db => db.TimeBlockId)
+                .ToListAsync();
+
+            // Only add new blocks
+            var newBlockIds = timeBlocksToAdd.Except(existingBlockIds).ToList();
+
+            if (newBlockIds.Any())
             {
-                _context.DoctorBlocks.Add(new DoctorBlock
+                foreach (var timeBlockId in newBlockIds)
                 {
-                    DoctorUserId = doctorId,
-                    TimeBlockId = timeBlock.Id
-                });
+                    _context.DoctorBlocks.Add(new DoctorBlock
+                    {
+                        DoctorUserId = doctorId,
+                        TimeBlockId = timeBlockId
+                    });
+                }
+
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
         catch

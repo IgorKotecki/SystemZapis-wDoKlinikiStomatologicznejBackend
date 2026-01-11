@@ -45,9 +45,9 @@ public class TimeBlockService : ITimeBlockService
         return await _timeBlockRepository.GetWorkingHoursAsync(doctorId, monday, sunday);
     }
 
-    public async Task DeleteWorkingHoursAsync(int doctorId, DateTime date)
+    public async Task DeleteWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
     {
-        await _timeBlockRepository.DeleteWorkingHoursAsync(doctorId, date);
+        await _timeBlockRepository.DeleteWorkingHoursAsync(doctorId, workingHoursDto);
     }
 
     public async Task AddWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
