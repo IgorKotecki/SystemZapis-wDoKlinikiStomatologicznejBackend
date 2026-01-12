@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Models;
+using SystemZapisowDoKlinikiApi.Models.Enums;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -108,7 +109,9 @@ public class TimeBlockRepository : ITimeBlockRepository
                 .Where(db =>
                     db.DoctorUser.UserId == doctorId &&
                     timeBlocksInRange.Contains(db.TimeBlockId) &&
-                    !db.Appointments.Any())
+                    (!db.Appointments.Any() ||
+                     db.Appointments.All(a => a.AppointmentStatusId == (int)AppointmentStatuses.Cancelled))
+                )
                 .ToListAsync();
 
             if (blocksToDelete.Any())

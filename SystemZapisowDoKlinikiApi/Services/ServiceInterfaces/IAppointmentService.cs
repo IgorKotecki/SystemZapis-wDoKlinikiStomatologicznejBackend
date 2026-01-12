@@ -7,11 +7,21 @@ public interface IAppointmentService
 {
     public Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest);
     public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang);
-    Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, string lang, DateTime date);
+
+    Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(
+        int doctorId, string lang, DateTime date, bool showCancelled, bool showCompleted);
+
     Task BookAppointmentForRegisteredUserAsync(int userId, BookAppointmentRequestDTO bookAppointmentRequestDto);
     Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto);
     Task UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto updateAppointmentStatusDto);
-    Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(string lang, DateTime date);
+
+    Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(
+        string lang,
+        DateTime date,
+        bool showCancelled,
+        bool showCompleted);
+
     Task<ICollection<AppointmentDto>> GetAppointmentsByDate(string lang, DateTime date);
     Task CancelAppointmentAsync(CancellationDto appointmentGuid);
+    Task CompleteAppointmentAsync(CompletionDto completionDto);
 }

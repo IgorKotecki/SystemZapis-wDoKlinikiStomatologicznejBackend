@@ -83,7 +83,12 @@ public class AppointmentController : ControllerBase
 
     [HttpGet("doctor/appointments")]
     [Authorize(Roles = "Doctor")]
-    public async Task<IActionResult> GetDoctorAppointments([FromQuery] string lang, [FromQuery] DateTime date)
+    public async Task<IActionResult> GetDoctorAppointments(
+        [FromQuery] string lang,
+        [FromQuery] DateTime date,
+        [FromQuery] bool showCancelled = false,
+        [FromQuery] bool showCompleted = false
+    )
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 
@@ -96,20 +101,27 @@ public class AppointmentController : ControllerBase
             "Getting appointments for doctor with id: {userId}, for date: {Date}, with language preference: {Lang}",
             userId, date, lang);
 
-        var appointments = await _appointmentService.GetAppointmentsByDoctorIdAsync(int.Parse(userId), lang, date);
+        var appointments = await _appointmentService
+            .GetAppointmentsByDoctorIdAsync(int.Parse(userId), lang, date, showCancelled, showCompleted);
 
         return Ok(appointments);
     }
 
     [HttpGet("receptionist/appointments")]
-    //[Authorize(Roles = "Receptionist,Admin")]
-    public async Task<IActionResult> GetAppointmentsForReceptionist([FromQuery] string lang, [FromQuery] DateTime date)
+    [Authorize(Roles = "Receptionist,Admin")]
+    public async Task<IActionResult> GetAppointmentsForReceptionist(
+        [FromQuery] string lang,
+        [FromQuery] DateTime date,
+        [FromQuery] bool showCancelled = false,
+        [FromQuery] bool showCompleted = false
+    )
     {
         _logger.LogInformation(
             "Getting appointments for receptionist/admin for date: {Date}, with language preference: {Lang}",
             date, lang);
 
-        var appointments = await _appointmentService.GetAppointmentsForReceptionistAsync(lang, date);
+        var appointments = await _appointmentService
+            .GetAppointmentsForReceptionistAsync(lang, date, showCancelled, showCompleted);
 
         return Ok(appointments);
     }
@@ -145,5 +157,15 @@ public class AppointmentController : ControllerBase
             cancellationDto.AppointmentGuid, cancellationDto.Reason);
         await _appointmentService.CancelAppointmentAsync(cancellationDto);
         return Ok("Appointment cancelled successfully.");
+    }
+
+    [HttpPut("complete-appointment")]
+    [Authorize(Roles = "Doctor,Admin,Receptionist")]
+    public async Task<IActionResult> CompleteAppointmentAsync(
+        [FromBody] CompletionDto completionDto)
+    {
+        _logger.LogInformation("Completing appointment with id: {AppointmentId}", completionDto.AppointmentGroupId);
+        await _appointmentService.CompleteAppointmentAsync(completionDto);
+        return Ok("Appointment completed successfully.");
     }
 }

@@ -141,11 +141,6 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.Property<int>("AppointmentStatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("CancellationReason")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("cancellation_reason");
-
                     b.Property<int>("DoctorBlockId")
                         .HasColumnType("int")
                         .HasColumnName("Doctor_block_id");
@@ -187,6 +182,88 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("AppointmentStatuses");
+                });
+
+            modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.CancelledAppointment", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AppointmentGroupId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("AppointmentStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ServicesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentStatusId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CancelledAppointments", (string)null);
+                });
+
+            modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.CompletedAppointment", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AdditionalInformationJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AppointmentGroupId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("AppointmentStatusId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DoctorId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ServicesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentStatusId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CompletedAppointments", (string)null);
                 });
 
             modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.DaySchemeTimeBlock", b =>
@@ -757,6 +834,44 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.Navigation("AppointmentStatus");
 
                     b.Navigation("DoctorBlock");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.CancelledAppointment", b =>
+                {
+                    b.HasOne("SystemZapisowDoKlinikiApi.Models.AppointmentStatus", "AppointmentStatus")
+                        .WithMany()
+                        .HasForeignKey("AppointmentStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SystemZapisowDoKlinikiApi.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppointmentStatus");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SystemZapisowDoKlinikiApi.Models.CompletedAppointment", b =>
+                {
+                    b.HasOne("SystemZapisowDoKlinikiApi.Models.AppointmentStatus", "AppointmentStatus")
+                        .WithMany()
+                        .HasForeignKey("AppointmentStatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SystemZapisowDoKlinikiApi.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AppointmentStatus");
 
                     b.Navigation("User");
                 });

@@ -29,6 +29,12 @@ public class AppointmentService : IAppointmentService
             throw new ArgumentNullException(nameof(appointmentRequest), "Appointment request cannot be null.");
         }
 
+        // if (appointmentRequest.StartTime < DateTime.Now)
+        // {
+        //     throw new BusinessException("APPOINTMENT_IN_PAST",
+        //         "Cannot book an appointment in the past.");
+        // }
+
         var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
 
         if (user == null)
@@ -72,8 +78,12 @@ public class AppointmentService : IAppointmentService
         return appointments;
     }
 
-    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, string lang,
-        DateTime date)
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(
+        int doctorId,
+        string lang,
+        DateTime date,
+        bool showCancelled,
+        bool showCompleted)
     {
         if (doctorId <= 0)
         {
@@ -82,7 +92,8 @@ public class AppointmentService : IAppointmentService
 
         var mondayDate = GetMonday(date);
 
-        var appointments = await _appointmentRepository.GetAppointmentsByDoctorIdAsync(doctorId, mondayDate, lang);
+        var appointments = await _appointmentRepository
+            .GetAppointmentsByDoctorIdAsync(doctorId, mondayDate, lang, showCancelled, showCompleted);
 
         return appointments;
     }
@@ -125,11 +136,16 @@ public class AppointmentService : IAppointmentService
         await _appointmentRepository.UpdateAppointmentStatusAsync(updateAppointmentStatusDto);
     }
 
-    public async Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(string lang, DateTime date)
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(
+        string lang,
+        DateTime date,
+        bool showCancelled,
+        bool showCompleted)
     {
         var mondayDate = GetMonday(date);
 
-        var appointments = await _appointmentRepository.GetAppointmentsForReceptionistAsync(mondayDate, lang);
+        var appointments = await _appointmentRepository
+            .GetAppointmentsForReceptionistAsync(mondayDate, lang, showCancelled, showCompleted);
 
         return appointments;
     }
@@ -142,6 +158,17 @@ public class AppointmentService : IAppointmentService
     public async Task CancelAppointmentAsync(CancellationDto cancellationDto)
     {
         await _appointmentRepository.CancelAppointmentAsync(cancellationDto);
+        var appointment =
+            await _appointmentRepository.GetCancelledAppointmentByIdAsync(cancellationDto.AppointmentGuid);
+        var user = appointment.User;
+        var email = user.Email;
+        //await _emailService.SendEmailAsync(email, "Appointment Cancellation",
+        //    $"Dear {user.Name},\n\nYour appointment scheduled on {appointment.StartTime} has been cancelled.\n\nBest regards,\nClinic Team");
+    }
+
+    public async Task CompleteAppointmentAsync(CompletionDto completionDto)
+    {
+        await _appointmentRepository.CompleteAppointmentAsync(completionDto);
     }
 
 

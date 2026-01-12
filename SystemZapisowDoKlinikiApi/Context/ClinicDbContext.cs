@@ -46,8 +46,11 @@ public partial class ClinicDbContext : DbContext
     public DbSet<ToothStatusCategoryTranslation> ToothStatusCategoryTranslations { get; set; }
     public virtual DbSet<ServiceCategory> ServiceCategory { get; set; }
     public virtual DbSet<ToothName> ToothNames { get; set; }
-
     public virtual DbSet<User> Users { get; set; }
+
+    public virtual DbSet<CancelledAppointment> CancelledAppointments { get; set; }
+
+    public virtual DbSet<CompletedAppointment> CompletedAppointments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -79,8 +82,6 @@ public partial class ClinicDbContext : DbContext
             entity.Property(e => e.DoctorBlockId).HasColumnName("Doctor_block_id");
             entity.Property(e => e.UserId).HasColumnName("User_id");
             entity.Property(e => e.AppointmentGroupId).HasColumnName("Appointment_Group_Id").HasMaxLength(40)
-                .IsRequired(false);
-            entity.Property(e => e.CancellationReason).HasColumnName("cancellation_reason").HasMaxLength(500)
                 .IsRequired(false);
 
             entity.HasOne(d => d.DoctorBlock).WithMany(p => p.Appointments)
@@ -131,6 +132,84 @@ public partial class ClinicDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(a => a.AppointmentStatusId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CancelledAppointment>(entity =>
+        {
+            entity.ToTable("CancelledAppointments");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            entity.HasOne(e => e.AppointmentStatus)
+                .WithMany()
+                .HasForeignKey(e => e.AppointmentStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(e => e.StartTime)
+                .IsRequired();
+
+            entity.Property(e => e.EndTime)
+                .IsRequired();
+
+            entity.Property(e => e.DoctorId)
+                .IsRequired();
+
+            entity.Property(e => e.CancellationReason)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.ServicesJson)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(e => e.AppointmentGroupId)
+                .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<CompletedAppointment>(entity =>
+        {
+            entity.ToTable("CompletedAppointments");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id).ValueGeneratedNever();
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.AppointmentStatus)
+                .WithMany()
+                .HasForeignKey(e => e.AppointmentStatusId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(e => e.StartTime)
+                .IsRequired();
+
+            entity.Property(e => e.EndTime)
+                .IsRequired();
+
+            entity.Property(e => e.DoctorId)
+                .IsRequired();
+
+            entity.Property(e => e.AppointmentGroupId)
+                .HasMaxLength(50);
+
+            entity.Property(e => e.ServicesJson)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(e => e.AdditionalInformationJson)
+                .HasColumnType("nvarchar(max)");
+
+            entity.Property(e => e.Notes)
+                .HasColumnType("nvarchar(max)");
         });
 
         modelBuilder.Entity<AppointmentStatus>(entity =>

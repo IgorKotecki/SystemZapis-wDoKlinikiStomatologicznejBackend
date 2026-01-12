@@ -2,22 +2,23 @@ using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SystemZapisowDoKlinikiApi.Controllers;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Models;
+using SystemZapisowDoKlinikiApi.Models.Enums;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
 public class AppointmentRepository : IAppointmentRepository
 {
     private readonly ClinicDbContext _context;
-    private readonly IServiceRepository _serviceRepository;
 
-    public AppointmentRepository(ClinicDbContext context, IServiceRepository serviceRepository)
+    public AppointmentRepository(ClinicDbContext context)
     {
         _context = context;
-        _serviceRepository = serviceRepository;
     }
 
     public async Task CreateAppointmentGuestAsync(BookAppointmentRequestDTO appointmentRequest, int userId)
@@ -103,14 +104,128 @@ public class AppointmentRepository : IAppointmentRepository
             .Where(a => a.UserId == userId)
             .ToListAsync();
 
-        return appointments
+        var completedAppointments = await _context.CompletedAppointments
+            .Where(ca => ca.UserId == userId).Include(completedAppointment => completedAppointment.User)
+            .ToListAsync();
+
+        var cancelledAppointments = await _context.CancelledAppointments
+            .Where(ca => ca.UserId == userId)
+            .ToListAsync();
+
+        var doctorsUsers = _context.Users.Where(u => u.RolesId == 1).ToList();
+
+        var appointmentsDto = appointments
             .GroupBy(a => a.AppointmentGroupId)
             .Select(group => MapToAppointmentDto(group, lang))
             .ToList();
+
+        var completedAppointmentsDto = completedAppointments
+            .GroupBy(a => a.AppointmentGroupId)
+            .Select(group => MapToCompletedAppointmentDto(group!, doctorsUsers, lang))
+            .ToList();
+
+        var cancelledAppointmentsDto = cancelledAppointments
+            .GroupBy(a => a.AppointmentGroupId)
+            .Select(group => MapToCancelledAppointmentDto(group!, doctorsUsers, lang))
+            .ToList();
+
+        var result = appointmentsDto
+            .Concat(completedAppointmentsDto)
+            .Concat(cancelledAppointmentsDto)
+            .OrderByDescending(a => a.StartTime)
+            .ToList();
+
+        return result;
     }
 
-    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(int doctorId, DateTime date,
+    private AppointmentDto MapToCompletedAppointmentDto(IGrouping<string, CompletedAppointment> group,
+        List<User> doctorsUsers, string lang)
+    {
+        return new AppointmentDto
+        {
+            AppointmentGroupId = group.Key,
+            User = MapToUserDto(group.First().User),
+            StartTime = group.Min(a => a.StartTime),
+            EndTime = group.Max(a => a.EndTime),
+            Doctor = MapToUserDto(doctorsUsers.First(u => u.Id == group.First().DoctorId)),
+            Services = MapServicesJson(group.Select(a => a.ServicesJson), lang),
+            Status = GetLocalizedText("Zakończona", "Completed", lang),
+            AdditionalInformation = MapAdditionalInformation(group.Select(a => a.AdditionalInformationJson), lang),
+            Notes = group.First().Notes,
+            CancellationReason = null,
+        };
+    }
+
+    private AppointmentDto MapToCancelledAppointmentDto(IGrouping<string, CancelledAppointment> group,
+        List<User> doctorsUsers, string lang)
+    {
+        return new AppointmentDto
+        {
+            AppointmentGroupId = group.Key,
+            User = MapToUserDto(group.First().User),
+            StartTime = group.Min(a => a.StartTime),
+            EndTime = group.Max(a => a.EndTime),
+            Doctor = MapToUserDto(doctorsUsers.First(u => u.Id == group.First().DoctorId)),
+            Services = MapServicesJson(group.Select(a => a.ServicesJson), lang),
+            Status = GetLocalizedText("Anulowana", "Cancelled", lang),
+            CancellationReason = group.First().CancellationReason,
+            AdditionalInformation = null,
+            Notes = null,
+        };
+    }
+
+    private List<ServiceDTO> MapServicesJson(IEnumerable<string?> servicesJsonList, string lang)
+    {
+        return servicesJsonList
+            .Where(json => !string.IsNullOrEmpty(json))
+            .SelectMany(json =>
+            {
+                var services = JArray.Parse(json!);
+                return services.Select(s => new ServiceDTO
+                {
+                    Id = s["Id"].Value<int>(),
+                    LowPrice = s["LowPrice"]?.Value<decimal?>(),
+                    HighPrice = s["HighPrice"]?.Value<decimal?>(),
+                    MinTime = s["MinTime"].Value<int>(),
+                    LanguageCode = lang,
+                    Name = s["Translations"]
+                               .FirstOrDefault(t => t["LanguageCode"].Value<string>() == lang)?["Name"]?.Value<string>()
+                           ?? s["Translations"].First()["Name"].Value<string>(),
+                    Categories = s["Categories"]
+                        .Select(c => lang == "pl"
+                            ? c["NamePl"].Value<string>()
+                            : c["NameEn"].Value<string>())
+                        .ToList()
+                });
+            })
+            .ToList();
+    }
+
+    private List<AddInformationOutDto> MapAdditionalInformation(IEnumerable<string?> additionalInfoJsonList,
         string lang)
+    {
+        return additionalInfoJsonList
+            .Where(json => !string.IsNullOrEmpty(json))
+            .SelectMany(json =>
+            {
+                var items = JArray.Parse(json!);
+                return items.Select(item => new AddInformationOutDto
+                {
+                    Id = item["Id"].Value<int>(),
+                    Body = lang == "pl"
+                        ? item["BodyPl"].Value<string>()
+                        : item["BodyEn"].Value<string>()
+                });
+            })
+            .ToList();
+    }
+
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(
+        int doctorId,
+        DateTime date,
+        string lang,
+        bool showCancelled,
+        bool showCompleted)
     {
         var startOfWeek = date.Date;
         var endOfWeek = date.AddDays(7).Date;
@@ -121,10 +236,50 @@ public class AppointmentRepository : IAppointmentRepository
                         a.DoctorBlock.TimeBlock.TimeStart.Date < endOfWeek)
             .ToListAsync();
 
-        return appointments
+        var doctorsUsers = _context.Users.Where(u => u.Id == doctorId).ToList();
+
+        var appointmentsDto = appointments
             .GroupBy(a => a.AppointmentGroupId)
             .Select(group => MapToAppointmentDto(group, lang))
             .ToList();
+
+        var result = appointmentsDto;
+
+        if (showCompleted)
+        {
+            var completedAppointments = await _context.CompletedAppointments
+                .Where(ca => ca.DoctorId == doctorId &&
+                             ca.StartTime.Date >= startOfWeek &&
+                             ca.StartTime.Date < endOfWeek)
+                .Include(completedAppointment => completedAppointment.User)
+                .ToListAsync();
+
+            var completedAppointmentsDto = completedAppointments
+                .GroupBy(a => a.AppointmentGroupId)
+                .Select(group => MapToCompletedAppointmentDto(group!, doctorsUsers, lang))
+                .ToList();
+
+            result = result.Concat(completedAppointmentsDto).ToList();
+        }
+
+        if (showCancelled)
+        {
+            var cancelledAppointments = await _context.CancelledAppointments
+                .Where(ca => ca.DoctorId == doctorId &&
+                             ca.StartTime.Date >= startOfWeek &&
+                             ca.StartTime.Date < endOfWeek)
+                .Include(cancelledAppointment => cancelledAppointment.User)
+                .ToListAsync();
+
+            var cancelledAppointmentsDto = cancelledAppointments
+                .GroupBy(a => a.AppointmentGroupId)
+                .Select(group => MapToCancelledAppointmentDto(group!, doctorsUsers, lang))
+                .ToList();
+
+            result = result.Concat(cancelledAppointmentsDto).ToList();
+        }
+
+        return result;
     }
 
     public async Task BookAppointmentForRegisteredUserAsync(int userId,
@@ -149,9 +304,19 @@ public class AppointmentRepository : IAppointmentRepository
                     "No appointments found for the provided appointment ID.");
             }
 
+            var minTime = await _context.Appointments
+                .Where(a => a.AppointmentGroupId == addInfoToAppointmentDto.Id)
+                .MinAsync(a => a.DoctorBlock.TimeBlock.TimeStart);
+
+            if (minTime > DateTime.Now)
+            {
+                throw new BusinessException("CANNOT_COMPLETE",
+                    "Cannot mark appointment as completed before it starts.");
+            }
+
             List<AdditionalInformation> addInformation;
 
-            if (addInfoToAppointmentDto.AddInformationIds == null || !addInfoToAppointmentDto.AddInformationIds.Any())
+            if (!addInfoToAppointmentDto.AddInformationIds.Any())
             {
                 addInformation = new List<AdditionalInformation>();
             }
@@ -201,6 +366,19 @@ public class AppointmentRepository : IAppointmentRepository
                     "No appointments found for the provided appointment group ID.");
             }
 
+            if (updateAppointmentStatusDto.StatusId == (int)AppointmentStatuses.Completed)
+            {
+                var minTime = await _context.Appointments
+                    .Where(a => a.AppointmentGroupId == updateAppointmentStatusDto.AppointmentId)
+                    .MinAsync(a => a.DoctorBlock.TimeBlock.TimeStart);
+
+                if (minTime > DateTime.Now)
+                {
+                    throw new BusinessException("CANNOT_COMPLETE",
+                        "Cannot mark appointment as completed before it starts.");
+                }
+            }
+
             foreach (var appointment in appointments)
             {
                 appointment.AppointmentStatusId = updateAppointmentStatusDto.StatusId;
@@ -216,20 +394,59 @@ public class AppointmentRepository : IAppointmentRepository
         }
     }
 
-    public async Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(DateTime mondayDate, string lang)
+
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsForReceptionistAsync(
+        DateTime mondayDate,
+        string lang,
+        bool showCancelled,
+        bool showCompleted
+    )
     {
         var startOfWeek = mondayDate.Date;
         var endOfWeek = startOfWeek.AddDays(7).Date;
+
+        var doctorsUsers = _context.Users.Where(u => u.RolesId == 1).ToList();
 
         var appointments = await GetAppointmentsQuery()
             .Where(a => a.DoctorBlock.TimeBlock.TimeStart.Date >= startOfWeek &&
                         a.DoctorBlock.TimeBlock.TimeStart.Date < endOfWeek)
             .ToListAsync();
 
-        return appointments
+        var appointmentsDto = appointments
             .GroupBy(a => a.AppointmentGroupId)
             .Select(group => MapToAppointmentDto(group, lang))
             .ToList();
+        var result = appointmentsDto;
+
+        if (showCompleted)
+        {
+            var completedAppointments = await _context.CompletedAppointments
+                .Where(ca => ca.StartTime.Date >= startOfWeek &&
+                             ca.StartTime.Date < endOfWeek)
+                .Include(completedAppointment => completedAppointment.User)
+                .ToListAsync();
+            var completedAppointmentsDto = completedAppointments
+                .GroupBy(a => a.AppointmentGroupId)
+                .Select(group => MapToCompletedAppointmentDto(group!, doctorsUsers, lang))
+                .ToList();
+            result = result.Concat(completedAppointmentsDto).ToList();
+        }
+
+        if (showCancelled)
+        {
+            var cancelledAppointments = await _context.CancelledAppointments
+                .Where(ca => ca.StartTime.Date >= startOfWeek &&
+                             ca.StartTime.Date < endOfWeek)
+                .Include(cancelledAppointment => cancelledAppointment.User)
+                .ToListAsync();
+            var cancelledAppointmentsDto = cancelledAppointments
+                .GroupBy(a => a.AppointmentGroupId)
+                .Select(group => MapToCancelledAppointmentDto(group!, doctorsUsers, lang))
+                .ToList();
+            result = result.Concat(cancelledAppointmentsDto).ToList();
+        }
+
+        return result;
     }
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsByDateAsync(string lang, DateTime date)
@@ -249,20 +466,169 @@ public class AppointmentRepository : IAppointmentRepository
         using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
-            await UpdateAppointmentStatusAsync(new UpdateAppointmentStatusDto
-            {
-                AppointmentId = cancellationDto.AppointmentGuid,
-                StatusId = 4
-            });
             var appointments = await _context.Appointments
                 .Where(a => a.AppointmentGroupId == cancellationDto.AppointmentGuid)
+                .Include(a => a.DoctorBlock)
+                .ThenInclude(db => db.DoctorUser)
+                .Include(a => a.Services).ThenInclude(service => service.ServicesTranslations)
+                .Include(appointment => appointment.DoctorBlock)
+                .ThenInclude(doctorBlock => doctorBlock.TimeBlock).Include(appointment => appointment.Services)
+                .ThenInclude(service => service.ServiceCategories)
+                .AsSplitQuery()
                 .ToListAsync();
 
-            foreach (var appointment in appointments)
+            if (appointments.IsNullOrEmpty())
             {
-                appointment.CancellationReason = cancellationDto.Reason;
+                throw new BusinessException("NO_APPOINTMENT",
+                    "No appointments found for the provided appointment group ID.");
             }
 
+            var cancelledAppointments = appointments.Select(a => new CancelledAppointment
+            {
+                Id = a.Id,
+                UserId = a.UserId,
+                DoctorId = a.DoctorBlock.DoctorUser.UserId,
+                StartTime = a.DoctorBlock.TimeBlock.TimeStart,
+                EndTime = a.DoctorBlock.TimeBlock.TimeEnd,
+                AppointmentGroupId = a.AppointmentGroupId,
+                AppointmentStatusId = (int)AppointmentStatuses.Cancelled,
+                CancellationReason = cancellationDto.Reason,
+                ServicesJson = JsonConvert.SerializeObject(a.Services.Select(s => new
+                {
+                    s.Id,
+                    s.LowPrice,
+                    s.HighPrice,
+                    s.MinTime,
+                    Translations = s.ServicesTranslations.Select(t => new
+                    {
+                        t.LanguageCode,
+                        t.Name
+                    }),
+                    Categories = s.ServiceCategories.Select(c => new
+                    {
+                        c.Id,
+                        c.NamePl,
+                        c.NameEn
+                    })
+                }))
+            }).ToList();
+
+            _context.CancelledAppointments.AddRange(cancelledAppointments);
+
+            _context.Appointments.RemoveRange(appointments);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    public async Task<AppointmentDto> GetCancelledAppointmentByIdAsync(string appointmentGuid)
+    {
+        var appointment = await _context.CancelledAppointments
+            .Where(a => a.AppointmentGroupId == appointmentGuid)
+            .Include(a => a.User)
+            .Include(a => a.AppointmentStatus)
+            .FirstOrDefaultAsync();
+
+        var appointmentDto = new AppointmentDto
+        {
+            User = new UserDTO
+            {
+                Id = appointment!.User.Id,
+                Name = appointment.User.Name,
+                Surname = appointment.User.Surname,
+                Email = appointment.User.Email,
+                PhoneNumber = appointment.User.PhoneNumber
+            },
+            AppointmentGroupId = appointment.AppointmentGroupId,
+            StartTime = appointment.StartTime,
+            EndTime = appointment.EndTime,
+            Doctor = null,
+            Services = null,
+            Status = appointment.AppointmentStatus.NameEn,
+            AdditionalInformation = null,
+            CancellationReason = appointment.CancellationReason,
+            Notes = null
+        };
+
+        return appointmentDto;
+    }
+
+    public async Task CompleteAppointmentAsync(CompletionDto completionDto)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var appointments = await _context.Appointments
+                .Where(a => a.AppointmentGroupId == completionDto.AppointmentGroupId)
+                .Include(a => a.DoctorBlock)
+                .ThenInclude(db => db.DoctorUser)
+                .Include(a => a.Services).ThenInclude(service => service.ServicesTranslations)
+                .Include(appointment => appointment.DoctorBlock)
+                .ThenInclude(doctorBlock => doctorBlock.TimeBlock)
+                .Include(appointment => appointment.AdditionalInformations).Include(appointment => appointment.Services)
+                .ThenInclude(service => service.ServiceCategories)
+                .AsSplitQuery()
+                .ToListAsync();
+
+            if (!appointments.Any())
+            {
+                throw new BusinessException("NO_APPOINTMENT",
+                    "No appointments found for the provided appointment group ID.");
+            }
+
+            if (appointments.Any(a => a.DoctorBlock.TimeBlock.TimeStart > DateTime.Now))
+            {
+                throw new BusinessException("CANNOT_COMPLETE",
+                    "Cannot mark appointment as completed before it starts.");
+            }
+
+            var completedAppointments = appointments.Select(a => new CompletedAppointment
+            {
+                Id = a.Id,
+                UserId = a.UserId,
+                DoctorId = a.DoctorBlock.DoctorUser.UserId,
+                StartTime = a.DoctorBlock.TimeBlock.TimeStart,
+                EndTime = a.DoctorBlock.TimeBlock.TimeEnd,
+                AppointmentGroupId = a.AppointmentGroupId,
+                AppointmentStatusId = (int)AppointmentStatuses.Completed,
+                ServicesJson = JsonConvert.SerializeObject(a.Services.Select(s => new
+                {
+                    s.Id,
+                    s.LowPrice,
+                    s.HighPrice,
+                    s.MinTime,
+                    Translations = s.ServicesTranslations.Select(t => new
+                    {
+                        t.LanguageCode,
+                        t.Name
+                    }),
+                    Categories = s.ServiceCategories.Select(c => new
+                    {
+                        c.Id,
+                        c.NamePl,
+                        c.NameEn
+                    })
+                })),
+                AdditionalInformationJson = JsonConvert.SerializeObject(a.AdditionalInformations.Select(ai => new
+                {
+                    ai.Id,
+                    ai.BodyPl,
+                    ai.BodyEn
+                })),
+                Notes = completionDto.Notes
+            }).ToList();
+
+            _context.CompletedAppointments.AddRange(completedAppointments);
+
+            _context.Appointments.RemoveRange(appointments);
+
+            await _context.SaveChangesAsync();
             await transaction.CommitAsync();
         }
         catch
@@ -291,18 +657,6 @@ public class AppointmentRepository : IAppointmentRepository
             .AsSplitQuery();
     }
 
-    public Task<AddInformationOutDto> GetAddInformationByIdAsync(int id, string lang)
-    {
-        return _context.AdditionalInformations
-            .Where(ai => ai.Id == id)
-            .Select(ai => new AddInformationOutDto
-            {
-                Id = ai.Id,
-                Body = lang == "pl" ? ai.BodyPl : ai.BodyEn
-            })
-            .FirstOrDefaultAsync()!;
-    }
-
     private AppointmentDto MapToAppointmentDto(IGrouping<string?, Appointment> group, string lang)
     {
         var orderedBlocks = group.OrderBy(a => a.DoctorBlock.TimeBlock.TimeStart).ToList();
@@ -321,7 +675,9 @@ public class AppointmentRepository : IAppointmentRepository
             Doctor = MapToUserDto(doctor),
             Services = MapServices(group, lang),
             Status = GetLocalizedText(firstBlock.AppointmentStatus.NamePl, firstBlock.AppointmentStatus.NameEn, lang),
-            AdditionalInformation = MapAdditionalInformation(firstBlock.AdditionalInformations, lang)
+            AdditionalInformation = MapAdditionalInformation(firstBlock.AdditionalInformations, lang),
+            Notes = null,
+            CancellationReason = null
         };
     }
 
@@ -352,7 +708,7 @@ public class AppointmentRepository : IAppointmentRepository
                 Name = s.ServicesTranslations
                     .FirstOrDefault(t => t.LanguageCode == lang)
                     ?.Name,
-                Catergories = s.ServiceCategories
+                Categories = s.ServiceCategories
                     .Select(c => GetLocalizedText(c.NamePl, c.NameEn, lang))
                     .ToList()
             })

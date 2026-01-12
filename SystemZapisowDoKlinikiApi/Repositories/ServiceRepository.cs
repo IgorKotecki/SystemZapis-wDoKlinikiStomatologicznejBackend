@@ -175,7 +175,7 @@ public class ServiceRepository : IServiceRepository
                     .Select(st => st.Description)
                     .FirstOrDefault(),
                 LanguageCode = lang,
-                Catergories = s.ServiceCategories
+                Categories = s.ServiceCategories
                     .Select(sc => lang == "pl" ? sc.NamePl : sc.NameEn)
                     .ToList()
             }).OrderBy(s => s.Id)
@@ -183,7 +183,7 @@ public class ServiceRepository : IServiceRepository
         var servicesByCategory = new Dictionary<string, ICollection<ServiceDTO>>();
         foreach (var serviceDto in serviceDtos)
         {
-            foreach (var category in serviceDto.Catergories)
+            foreach (var category in serviceDto.Categories)
             {
                 if (!servicesByCategory.ContainsKey(category))
                 {
