@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.DaySchemeDtos;
 using SystemZapisowDoKlinikiApi.Models;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -66,12 +68,12 @@ public class DoctorDaySchemeRepository : IDoctorDaySchemeRepository
         }
     }
 
-    public async Task<WeekSchemeDto> GetDoctorWeekSchemeAsync(int UserId)
+    public async Task<WeekSchemeDto> GetDoctorWeekSchemeAsync(int userId)
     {
         var weekScheme = new WeekSchemeDto()
         {
             DaysSchemes = await _context.DaySchemeTimeBlocks
-                .Where(d => d.DoctorUser.UserId == UserId)
+                .Where(d => d.DoctorUser.UserId == userId)
                 .Select(ds => new DaySchemeDto()
                 {
                     DayOfWeek = ds.WeekDay,

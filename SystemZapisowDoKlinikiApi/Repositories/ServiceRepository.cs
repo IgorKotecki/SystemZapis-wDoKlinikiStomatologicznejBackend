@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.ServiceDtos;
 using SystemZapisowDoKlinikiApi.Models;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -16,11 +18,11 @@ public class ServiceRepository : IServiceRepository
     }
 
     [AllowAnonymous]
-    public async Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang)
+    public async Task<ICollection<ServiceDto>> GetAllServicesAvailableForClientWithLangAsync(string lang)
     {
         return await _context.Services
             .Where(s => s.Roles.Any(r => r.Name == "Registered_user" || r.Name == "Unregistered_user"))
-            .Select(s => new ServiceDTO()
+            .Select(s => new ServiceDto()
             {
                 Id = s.Id,
                 LowPrice = s.LowPrice,
@@ -41,11 +43,11 @@ public class ServiceRepository : IServiceRepository
             .FirstOrDefaultAsync(s => s.Id == serviceId);
     }
 
-    public async Task<ServiceEditDTO?> GetServiceEditDTOByIdAsync(int serviceId)
+    public async Task<ServiceEditDto?> GetServiceEditDtoByIdAsync(int serviceId)
     {
         return await _context.Services
             .Where(s => s.Id == serviceId)
-            .Select(s => new ServiceEditDTO
+            .Select(s => new ServiceEditDto
             {
                 Id = s.Id,
                 LowPrice = s.LowPrice,
@@ -160,7 +162,7 @@ public class ServiceRepository : IServiceRepository
     public async Task<AllServicesDto> GetAllServicesAsync(string lang)
     {
         var serviceDtos = await _context.Services
-            .Select(s => new ServiceDTO()
+            .Select(s => new ServiceDto
             {
                 Id = s.Id,
                 LowPrice = s.LowPrice,
@@ -178,26 +180,16 @@ public class ServiceRepository : IServiceRepository
                 Categories = s.ServiceCategories
                     .Select(sc => lang == "pl" ? sc.NamePl : sc.NameEn)
                     .ToList()
-            }).OrderBy(s => s.Id)
+            })
+            .OrderBy(s => s.Id)
             .ToListAsync();
-        var servicesByCategory = new Dictionary<string, ICollection<ServiceDTO>>();
-        foreach (var serviceDto in serviceDtos)
-        {
-            foreach (var category in serviceDto.Categories)
-            {
-                if (!servicesByCategory.ContainsKey(category))
-                {
-                    servicesByCategory[category] = new List<ServiceDTO>();
-                }
 
-                servicesByCategory[category].Add(serviceDto);
-            }
-        }
+        var servicesByCategory = serviceDtos
+            .SelectMany(s => s.Categories!.Select(c => new { Category = c, Service = s }))
+            .GroupBy(x => x.Category, x => x.Service)
+            .ToDictionary(g => g.Key, g => (ICollection<ServiceDto>)g.ToList());
 
-        return new AllServicesDto
-        {
-            ServicesByCategory = servicesByCategory
-        };
+        return new AllServicesDto { ServicesByCategory = servicesByCategory };
     }
 
     public async Task DeleteServiceAsync(int serviceId)
@@ -226,7 +218,7 @@ public class ServiceRepository : IServiceRepository
         }
     }
 
-    public async Task EditServiceAsync(int serviceId, ServiceEditDTO serviceEditDto)
+    public async Task EditServiceAsync(int serviceId, ServiceEditDto serviceEditDto)
     {
         var service = await _context.Services
             .Include(s => s.ServicesTranslations)
@@ -290,10 +282,10 @@ public class ServiceRepository : IServiceRepository
         return await _context.ServiceCategory.AsNoTracking().ToListAsync();
     }
 
-    public async Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang)
+    public async Task<ICollection<ServiceDto>> GetAllServicesForReceptionistAsync(string lang)
     {
         return await _context.Services
-            .Select(s => new ServiceDTO()
+            .Select(s => new ServiceDto()
             {
                 Id = s.Id,
                 LowPrice = s.LowPrice,

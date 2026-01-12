@@ -1,7 +1,8 @@
 using Microsoft.IdentityModel.Tokens;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.DTO.ServiceDtos;
 using SystemZapisowDoKlinikiApi.Models;
-using SystemZapisowDoKlinikiApi.Repositories;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
@@ -14,7 +15,7 @@ public class ServiceService : IServiceService
         _serviceRepository = serviceRepository;
     }
 
-    public async Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang)
+    public async Task<ICollection<ServiceDto>> GetAllServicesAvailableForClientWithLangAsync(string lang)
     {
         if (string.IsNullOrWhiteSpace(lang))
         {
@@ -66,9 +67,9 @@ public class ServiceService : IServiceService
         return await _serviceRepository.GetServiceByIdAsync(serviceId);
     }
 
-    public async Task<ServiceEditDTO?> GetServiceForEditAsync(int serviceId)
+    public async Task<ServiceEditDto?> GetServiceForEditAsync(int serviceId)
     {
-        return await _serviceRepository.GetServiceEditDTOByIdAsync(serviceId);
+        return await _serviceRepository.GetServiceEditDtoByIdAsync(serviceId);
     }
 
 
@@ -77,7 +78,7 @@ public class ServiceService : IServiceService
         return _serviceRepository.DeleteServiceAsync(serviceId);
     }
 
-    public Task EditServiceAsync(int serviceId, ServiceEditDTO serviceEditDto)
+    public Task EditServiceAsync(int serviceId, ServiceEditDto serviceEditDto)
     {
         if (serviceEditDto == null)
             throw new ArgumentNullException(nameof(serviceEditDto));
@@ -86,10 +87,10 @@ public class ServiceService : IServiceService
     }
 
 
-    public async Task<List<ServiceCategoryDTO>> GetAllServiceCategories()
+    public async Task<List<ServiceCategoryDto>> GetAllServiceCategories()
     {
         var categories = await _serviceRepository.GetAllServiceCategories();
-        return categories.Select(c => new ServiceCategoryDTO
+        return categories.Select(c => new ServiceCategoryDto
         {
             Id = c.Id,
             NamePl = c.NamePl,
@@ -97,7 +98,7 @@ public class ServiceService : IServiceService
         }).ToList();
     }
 
-    public async Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang)
+    public async Task<ICollection<ServiceDto>> GetAllServicesForReceptionistAsync(string lang)
     {
         return await _serviceRepository.GetAllServicesForReceptionistAsync(lang);
     }

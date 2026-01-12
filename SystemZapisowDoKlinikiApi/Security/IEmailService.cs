@@ -1,4 +1,4 @@
-﻿namespace ProjektSemestralnyTinWebApi.Security;
+﻿namespace SystemZapisowDoKlinikiApi.Security;
 
 public interface IEmailService
 {

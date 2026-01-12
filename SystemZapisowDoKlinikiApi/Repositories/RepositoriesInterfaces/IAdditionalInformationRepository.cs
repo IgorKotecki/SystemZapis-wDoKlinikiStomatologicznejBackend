@@ -1,7 +1,6 @@
-﻿using SystemZapisowDoKlinikiApi.Controllers;
-using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.AdditionalInformationDtos;
 
-namespace SystemZapisowDoKlinikiApi.Services;
+namespace SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 public interface IAdditionalInformationRepository
 {

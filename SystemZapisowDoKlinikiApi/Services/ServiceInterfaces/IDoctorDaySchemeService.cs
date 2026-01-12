@@ -1,6 +1,6 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.DaySchemeDtos;
 
-namespace SystemZapisowDoKlinikiApi.Services;
+namespace SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 public interface IDoctorDaySchemeService
 {

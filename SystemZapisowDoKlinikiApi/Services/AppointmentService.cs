@@ -1,8 +1,8 @@
-using ProjektSemestralnyTinWebApi.Security;
-using SystemZapisowDoKlinikiApi.Controllers;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.DTO.AppointmentDtos;
 using SystemZapisowDoKlinikiApi.Models;
-using SystemZapisowDoKlinikiApi.Repositories;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Security;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
@@ -10,15 +10,17 @@ public class AppointmentService : IAppointmentService
 {
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IUserService _userService;
-    private readonly ITimeBlockService _timeBlockService;
     private readonly IEmailService _emailService;
 
-    public AppointmentService(IAppointmentRepository appointmentRepository, IUserService userService,
-        ITimeBlockService timeBlockService, IEmailService emailService)
+    public AppointmentService(
+        IAppointmentRepository appointmentRepository,
+        IUserService userService,
+        IEmailService emailService
+    )
     {
         _appointmentRepository = appointmentRepository;
         _userService = userService;
-        _timeBlockService = timeBlockService;
+
         _emailService = emailService;
     }
 
@@ -51,7 +53,7 @@ public class AppointmentService : IAppointmentService
             CheckUserDataForAppointment(appointmentRequest, user);
         }
 
-        var bookAppointmentRequestDto = new BookAppointmentRequestDTO
+        var bookAppointmentRequestDto = new BookAppointmentRequestDto
         {
             DoctorId = appointmentRequest.DoctorId,
             StartTime = appointmentRequest.StartTime,
@@ -99,7 +101,7 @@ public class AppointmentService : IAppointmentService
     }
 
     public async Task BookAppointmentForRegisteredUserAsync(int userId,
-        BookAppointmentRequestDTO bookAppointmentRequestDto)
+        BookAppointmentRequestDto bookAppointmentRequestDto)
     {
         await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
 

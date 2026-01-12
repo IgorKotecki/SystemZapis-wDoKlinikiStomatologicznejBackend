@@ -1,32 +1,33 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Repositories;
+﻿using SystemZapisowDoKlinikiApi.DTO.UserDtos;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
 public class DoctorService : IDoctorService
 {
-    private readonly IDoctorRepository _DoctorRepository;
+    private readonly IDoctorRepository _doctorRepository;
 
     public DoctorService(IDoctorRepository doctorRepository)
     {
-        _DoctorRepository = doctorRepository;
+        _doctorRepository = doctorRepository;
     }
 
     public async Task AddDoctorAsync(AddDoctorDto addDoctorDto)
     {
-        await _DoctorRepository.AddDoctorAsync(addDoctorDto);
+        await _doctorRepository.AddDoctorAsync(addDoctorDto);
     }
 
     public async Task DeleteDoctorAsync(int doctorId)
     {
-        await _DoctorRepository.DeleteDoctorAsync(doctorId);
+        await _doctorRepository.DeleteDoctorAsync(doctorId);
     }
 
-    public async Task<IEnumerable<DoctorDTO>> GetDoctorsAsync()
+    public async Task<IEnumerable<DoctorDto>> GetDoctorsAsync()
     {
-        var doctors = await _DoctorRepository.GetDoctorsAsync();
+        var doctors = await _doctorRepository.GetDoctorsAsync();
 
-        return doctors.Select(d => new DoctorDTO
+        return doctors.Select(d => new DoctorDto
         {
             Id = d.Id,
             Name = d.Name,

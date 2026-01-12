@@ -1,8 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Services;
+using SystemZapisowDoKlinikiApi.DTO.AppointmentDtos;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
@@ -47,7 +47,7 @@ public class AppointmentController : ControllerBase
     [HttpPost("registered/appointment")]
     [Authorize(Roles = "Registered_user")]
     public async Task<IActionResult> BookAppointmentForRegisteredUserAsync(
-        [FromBody] BookAppointmentRequestDTO bookAppointmentRequestDto)
+        [FromBody] BookAppointmentRequestDto bookAppointmentRequestDto)
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
 

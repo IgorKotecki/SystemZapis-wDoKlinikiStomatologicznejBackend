@@ -1,5 +1,6 @@
-﻿using SystemZapisowDoKlinikiApi.Controllers;
-using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
@@ -12,12 +13,12 @@ public class ToothService : IToothService
         _toothRepository = toothRepository;
     }
 
-    public async Task<ToothModelOutDTO> GetToothModelAsync(ToothModelRequest request)
+    public async Task<ToothModelOutDto> GetToothModelAsync(ToothModelRequest request)
     {
         return await _toothRepository.GetToothModelAsync(request);
     }
 
-    public async Task UpdateToothModelAsync(ToothModelInDTO request)
+    public async Task UpdateToothModelAsync(ToothModelInDto request)
     {
         await _toothRepository.UpdateToothModelAsync(request);
     }

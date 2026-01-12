@@ -1,6 +1,6 @@
-﻿namespace SystemZapisowDoKlinikiApi.DTO;
+﻿namespace SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 
-public class ToothOutDTO
+public class ToothOutDto
 {
     public required ToothStatusOutDto Status { get; set; }
     public int ToothNumber { get; set; }

@@ -1,8 +1,8 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 
-namespace SystemZapisowDoKlinikiApi.Services;
+namespace SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 public interface ITeamService
 {
-    public Task<ICollection<TeamDTO>> GetAllTeamMembersAsync();
+    public Task<ICollection<TeamDto>> GetAllTeamMembersAsync();
 }

@@ -1,6 +1,7 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Models;
-using SystemZapisowDoKlinikiApi.Repositories;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
@@ -34,12 +35,12 @@ public class UserService : IUserService
         return _userRepository.GetUserByEmailAsync(email);
     }
 
-    public Task<UserDTO?> GetUserByIdAsync(int id)
+    public Task<UserDto?> GetUserByIdAsync(int id)
     {
         return _userRepository.GetUserByIdAsync(id);
     }
 
-    public async Task<UserDTO?> UpdateUserAsync(int id, UserUpdateDTO dto)
+    public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto)
     {
         var user = await _userRepository.GetByIdAsync(id);
 
@@ -54,7 +55,7 @@ public class UserService : IUserService
 
         await _userRepository.UpdateUserAsync(user);
 
-        return new UserDTO
+        return new UserDto
         {
             Id = user.Id,
             Name = user.Name,

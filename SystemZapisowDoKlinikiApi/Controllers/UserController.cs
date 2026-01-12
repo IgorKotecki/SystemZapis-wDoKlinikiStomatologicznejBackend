@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Services;
+using SystemZapisowDoKlinikiApi.DTO.UserDtos;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
@@ -33,7 +33,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("edit/{id}")]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDTO dto)
+    public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDto dto)
     {
         var updated = await _userService.UpdateUserAsync(id, dto);
 

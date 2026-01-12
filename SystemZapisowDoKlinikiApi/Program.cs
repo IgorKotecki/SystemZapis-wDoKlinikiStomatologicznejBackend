@@ -4,12 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Logs;
-using ProjektSemestralnyTinWebApi.Security;
-using SystemZapisowDoKlinikiApi.Controllers;
+using SystemZapisowDoKlinikiApi.Context;
 using SystemZapisowDoKlinikiApi.Middlewares;
-using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories;
 using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Security;
 using SystemZapisowDoKlinikiApi.Services;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 

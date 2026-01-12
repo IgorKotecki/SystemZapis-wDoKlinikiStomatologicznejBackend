@@ -4,11 +4,15 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SystemZapisowDoKlinikiApi.Controllers;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.AdditionalInformationDtos;
+using SystemZapisowDoKlinikiApi.DTO.AppointmentDtos;
+using SystemZapisowDoKlinikiApi.DTO.ServiceDtos;
+using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Models.Enums;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -21,12 +25,12 @@ public class AppointmentRepository : IAppointmentRepository
         _context = context;
     }
 
-    public async Task CreateAppointmentGuestAsync(BookAppointmentRequestDTO appointmentRequest, int userId)
+    public async Task CreateAppointmentGuestAsync(BookAppointmentRequestDto appointmentRequest, int userId)
     {
         await BookAppointment(appointmentRequest, userId);
     }
 
-    private async Task BookAppointment(BookAppointmentRequestDTO appointmentRequest, int userId)
+    private async Task BookAppointment(BookAppointmentRequestDto appointmentRequest, int userId)
     {
         await using IDbContextTransaction transaction =
             await _context.Database.BeginTransactionAsync(IsolationLevel.Serializable);
@@ -174,28 +178,29 @@ public class AppointmentRepository : IAppointmentRepository
         };
     }
 
-    private List<ServiceDTO> MapServicesJson(IEnumerable<string?> servicesJsonList, string lang)
+    private List<ServiceDto> MapServicesJson(IEnumerable<string?> servicesJsonList, string lang)
     {
         return servicesJsonList
             .Where(json => !string.IsNullOrEmpty(json))
             .SelectMany(json =>
             {
                 var services = JArray.Parse(json!);
-                return services.Select(s => new ServiceDTO
+                return services.Select(s => new ServiceDto
                 {
-                    Id = s["Id"].Value<int>(),
+                    Id = s["Id"]!.Value<int>(),
                     LowPrice = s["LowPrice"]?.Value<decimal?>(),
                     HighPrice = s["HighPrice"]?.Value<decimal?>(),
-                    MinTime = s["MinTime"].Value<int>(),
+                    MinTime = s["MinTime"]!.Value<int>(),
                     LanguageCode = lang,
-                    Name = s["Translations"]
-                               .FirstOrDefault(t => t["LanguageCode"].Value<string>() == lang)?["Name"]?.Value<string>()
-                           ?? s["Translations"].First()["Name"].Value<string>(),
-                    Categories = s["Categories"]
+                    Name = s["Translations"]!
+                               .FirstOrDefault(t => t["LanguageCode"]!.Value<string>() == lang)?["Name"]
+                               ?.Value<string>()
+                           ?? s["Translations"]!.First()["Name"]!.Value<string>(),
+                    Categories = s["Categories"]!
                         .Select(c => lang == "pl"
-                            ? c["NamePl"].Value<string>()
-                            : c["NameEn"].Value<string>())
-                        .ToList()
+                            ? c["NamePl"]!.Value<string>()
+                            : c["NameEn"]!.Value<string>())
+                        .ToList()!
                 });
             })
             .ToList();
@@ -211,10 +216,10 @@ public class AppointmentRepository : IAppointmentRepository
                 var items = JArray.Parse(json!);
                 return items.Select(item => new AddInformationOutDto
                 {
-                    Id = item["Id"].Value<int>(),
-                    Body = lang == "pl"
-                        ? item["BodyPl"].Value<string>()
-                        : item["BodyEn"].Value<string>()
+                    Id = item["Id"]!.Value<int>(),
+                    Body = (lang == "pl"
+                        ? item["BodyPl"]!.Value<string>()
+                        : item["BodyEn"]!.Value<string>())!
                 });
             })
             .ToList();
@@ -283,7 +288,7 @@ public class AppointmentRepository : IAppointmentRepository
     }
 
     public async Task BookAppointmentForRegisteredUserAsync(int userId,
-        BookAppointmentRequestDTO bookAppointmentRequestDto)
+        BookAppointmentRequestDto bookAppointmentRequestDto)
     {
         await BookAppointment(bookAppointmentRequestDto, userId);
     }
@@ -537,7 +542,7 @@ public class AppointmentRepository : IAppointmentRepository
 
         var appointmentDto = new AppointmentDto
         {
-            User = new UserDTO
+            User = new UserDto
             {
                 Id = appointment!.User.Id,
                 Name = appointment.User.Name,
@@ -681,9 +686,9 @@ public class AppointmentRepository : IAppointmentRepository
         };
     }
 
-    private UserDTO MapToUserDto(User user)
+    private UserDto MapToUserDto(User user)
     {
-        return new UserDTO
+        return new UserDto
         {
             Id = user.Id,
             Name = user.Name,
@@ -693,12 +698,12 @@ public class AppointmentRepository : IAppointmentRepository
         };
     }
 
-    private List<ServiceDTO> MapServices(IGrouping<string?, Appointment> group, string lang)
+    private List<ServiceDto> MapServices(IGrouping<string?, Appointment> group, string lang)
     {
         return group
             .SelectMany(a => a.Services)
             .DistinctBy(s => s.Id)
-            .Select(s => new ServiceDTO
+            .Select(s => new ServiceDto
             {
                 Id = s.Id,
                 LowPrice = s.LowPrice,

@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Services;
+using SystemZapisowDoKlinikiApi.DTO.UserDtos;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
@@ -18,7 +18,7 @@ public class TeamController : ControllerBase
     }
 
     [HttpGet("members")]
-    public async Task<ActionResult<ICollection<TeamDTO>>> GetAllTeamMembersAsync()
+    public async Task<ActionResult<ICollection<TeamDto>>> GetAllTeamMembersAsync()
     {
         var teamMembers = await _teamService.GetAllTeamMembersAsync();
 

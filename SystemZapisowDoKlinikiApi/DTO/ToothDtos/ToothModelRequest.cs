@@ -1,4 +1,4 @@
-﻿namespace SystemZapisowDoKlinikiApi.DTO;
+﻿namespace SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 
 public class ToothModelRequest
 {

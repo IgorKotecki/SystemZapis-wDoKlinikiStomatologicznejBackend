@@ -1,6 +1,8 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Repositories;
+using SystemZapisowDoKlinikiApi.DTO.TimeBlocksDtos;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 

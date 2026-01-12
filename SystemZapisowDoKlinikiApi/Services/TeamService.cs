@@ -1,5 +1,6 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Repositories;
+﻿using SystemZapisowDoKlinikiApi.DTO.UserDtos;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
@@ -14,7 +15,7 @@ public class TeamService : ITeamService
         _cloudName = configuration["Cloudinary:CloudName"]!;
     }
 
-    public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
+    public async Task<ICollection<TeamDto>> GetAllTeamMembersAsync()
     {
         var members = await _teamRepository.GetAllTeamMembersAsync();
         /*foreach (var member in members)

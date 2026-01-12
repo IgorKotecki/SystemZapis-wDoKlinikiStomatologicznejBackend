@@ -1,7 +1,7 @@
-﻿namespace SystemZapisowDoKlinikiApi.DTO;
+﻿namespace SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 
-public class ToothModelInDTO
+public class ToothModelInDto
 {
-    public ICollection<ToothInDTO> Teeth { get; set; } = new List<ToothInDTO>();
+    public ICollection<ToothInDto> Teeth { get; set; } = new List<ToothInDto>();
     public int UserId { get; set; }
 }

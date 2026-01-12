@@ -1,4 +1,5 @@
-﻿using ProjektSemestralnyTinWebApi.Security;
+﻿using SystemZapisowDoKlinikiApi.Security;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
@@ -25,11 +26,11 @@ public class DailyService : BackgroundService
 
             await Task.Delay(nextRun - now, stoppingToken);
 
-            await DoWork(stoppingToken, DateTime.Now);
+            await DoWork(DateTime.Now);
         }
     }
 
-    private async Task DoWork(CancellationToken stoppingToken, DateTime dateTime)
+    private async Task DoWork(DateTime dateTime)
     {
         using var scope = _scopeFactory.CreateScope();
 

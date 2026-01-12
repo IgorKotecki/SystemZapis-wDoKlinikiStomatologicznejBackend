@@ -1,6 +1,7 @@
 ﻿using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.DTO.TimeBlocksDtos;
 
-namespace SystemZapisowDoKlinikiApi.Repositories;
+namespace SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 public interface ITimeBlockRepository
 {

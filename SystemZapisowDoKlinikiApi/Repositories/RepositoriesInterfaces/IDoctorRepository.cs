@@ -1,7 +1,7 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Models;
 
-namespace SystemZapisowDoKlinikiApi.Repositories;
+namespace SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 public interface IDoctorRepository
 {

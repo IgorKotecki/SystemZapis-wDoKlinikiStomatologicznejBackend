@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace SystemZapisowDoKlinikiApi.Models;
+﻿namespace SystemZapisowDoKlinikiApi.Models;
 
 public partial class AdditionalInformation
 {

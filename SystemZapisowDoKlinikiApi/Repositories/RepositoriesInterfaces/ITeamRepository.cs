@@ -1,8 +1,8 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 
-namespace SystemZapisowDoKlinikiApi.Repositories;
+namespace SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 public interface ITeamRepository
 {
-    public Task<ICollection<TeamDTO>> GetAllTeamMembersAsync();
+    public Task<ICollection<TeamDto>> GetAllTeamMembersAsync();
 }

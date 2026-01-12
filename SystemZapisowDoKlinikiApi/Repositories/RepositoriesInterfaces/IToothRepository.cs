@@ -1,10 +1,10 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 
-namespace SystemZapisowDoKlinikiApi.Services;
+namespace SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 public interface IToothRepository
 {
-    public Task<ToothModelOutDTO> GetToothModelAsync(ToothModelRequest request);
-    Task UpdateToothModelAsync(ToothModelInDTO request);
+    public Task<ToothModelOutDto> GetToothModelAsync(ToothModelRequest request);
+    Task UpdateToothModelAsync(ToothModelInDto request);
     Task<ToothStatusesDto> GetToothStatusesAsync(string language);
 }

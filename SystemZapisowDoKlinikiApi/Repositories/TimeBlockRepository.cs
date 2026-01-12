@@ -1,7 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SystemZapisowDoKlinikiApi.Context;
 using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.DTO.TimeBlocksDtos;
+using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Models.Enums;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -27,7 +31,7 @@ public class TimeBlockRepository : ITimeBlockRepository
                 DoctorBlockId = db.Id,
                 TimeStart = db.TimeBlock.TimeStart,
                 TimeEnd = db.TimeBlock.TimeEnd,
-                User = new UserDTO()
+                User = new UserDto()
                 {
                     Id = db.DoctorUser.UserId,
                     Name = db.DoctorUser.User.Name,
@@ -49,7 +53,7 @@ public class TimeBlockRepository : ITimeBlockRepository
             DoctorBlockId = db.Id,
             TimeStart = db.TimeBlock.TimeStart,
             TimeEnd = db.TimeBlock.TimeEnd,
-            User = new UserDTO()
+            User = new UserDto()
             {
                 Id = db.DoctorUser.UserId,
                 Name = db.DoctorUser.User.Name,

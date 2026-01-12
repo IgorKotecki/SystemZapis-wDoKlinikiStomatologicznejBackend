@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using SystemZapisowDoKlinikiApi.Models;
 
-namespace SystemZapisowDoKlinikiApi.Models;
+namespace SystemZapisowDoKlinikiApi.Context;
 
 public partial class ClinicDbContext : DbContext
 {

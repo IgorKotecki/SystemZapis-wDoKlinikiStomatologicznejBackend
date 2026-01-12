@@ -6,10 +6,11 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using ProjektSemestralnyTinWebApi.Security;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.AuthDtos;
 using SystemZapisowDoKlinikiApi.Models;
-using RegisterRequest = SystemZapisowDoKlinikiApi.Models.RegisterRequest;
+using SystemZapisowDoKlinikiApi.Security;
+using RegisterRequest = SystemZapisowDoKlinikiApi.DTO.AuthDtos.RegisterRequest;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 

@@ -1,39 +1,30 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Repositories;
+﻿using SystemZapisowDoKlinikiApi.DTO.DaySchemeDtos;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Services;
 
 public class DoctorDaySchemeService : IDoctorDaySchemeService
 {
-    private readonly IDoctorDaySchemeRepository _DoctorDaySchemeRepository;
+    private readonly IDoctorDaySchemeRepository _doctorDaySchemeRepository;
 
     public DoctorDaySchemeService(IDoctorDaySchemeRepository doctorDaySchemeRepository)
     {
-        _DoctorDaySchemeRepository = doctorDaySchemeRepository;
+        _doctorDaySchemeRepository = doctorDaySchemeRepository;
     }
 
     public async Task UpdateDoctorWeekSchemeAsync(int doctorId, WeekSchemeDto weekSchemeDto)
     {
-        await _DoctorDaySchemeRepository.UpdateDoctorWeekSchemeAsync(doctorId, weekSchemeDto);
+        await _doctorDaySchemeRepository.UpdateDoctorWeekSchemeAsync(doctorId, weekSchemeDto);
     }
 
     public async Task<WeekSchemeDto> GetDoctorWeekSchemeAsync(int userId)
     {
-        return await _DoctorDaySchemeRepository.GetDoctorWeekSchemeAsync(userId);
+        return await _doctorDaySchemeRepository.GetDoctorWeekSchemeAsync(userId);
     }
 
     public async Task<DateTime> GetNextScheduledDayAsync(int doctorId)
     {
-        return await _DoctorDaySchemeRepository.GetNextScheduledDayAsync(doctorId);
-    }
-
-    private bool IsValidDayOfWeek(int dayOfWeek)
-    {
-        return dayOfWeek >= 0 && dayOfWeek <= 6;
-    }
-
-    private bool IsValidTimeRange(TimeOnly start, TimeOnly end)
-    {
-        return start < end && start >= new TimeOnly(8, 0, 0) && end <= new TimeOnly(20, 0, 0);
+        return await _doctorDaySchemeRepository.GetNextScheduledDayAsync(doctorId);
     }
 }

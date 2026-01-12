@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Models;
-using SystemZapisowDoKlinikiApi.Services;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -14,7 +14,7 @@ public class ToothRepository : IToothRepository
         _context = context;
     }
 
-    public async Task<ToothModelOutDTO> GetToothModelAsync(ToothModelRequest request)
+    public async Task<ToothModelOutDto> GetToothModelAsync(ToothModelRequest request)
     {
         var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId);
         if (!userExists)
@@ -33,7 +33,7 @@ public class ToothRepository : IToothRepository
             .ThenInclude(s => s.Category)
             .ThenInclude(c => c.Translations)
             .Where(t => t.UserId == request.UserId)
-            .Select(t => new ToothOutDTO
+            .Select(t => new ToothOutDto
             {
                 ToothNumber = t.ToothNumber,
                 ToothName = teethNames.ContainsKey(t.ToothNumber)
@@ -56,7 +56,7 @@ public class ToothRepository : IToothRepository
             .OrderBy(t => t.ToothNumber)
             .ToListAsync();
 
-        var result = new ToothModelOutDTO
+        var result = new ToothModelOutDto
         {
             Teeth = teeth
         };
@@ -64,7 +64,7 @@ public class ToothRepository : IToothRepository
         return result;
     }
 
-    public async Task UpdateToothModelAsync(ToothModelInDTO request)
+    public async Task UpdateToothModelAsync(ToothModelInDto request)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try

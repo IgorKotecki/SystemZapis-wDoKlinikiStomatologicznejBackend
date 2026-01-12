@@ -1,18 +1,18 @@
-﻿using SystemZapisowDoKlinikiApi.DTO;
+﻿using SystemZapisowDoKlinikiApi.DTO.ServiceDtos;
 using SystemZapisowDoKlinikiApi.Models;
 
-namespace SystemZapisowDoKlinikiApi.Services;
+namespace SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 public interface IServiceService
 {
-    public Task<ICollection<ServiceDTO>> GetAllServicesAvailableForClientWithLangAsync(string lang);
+    public Task<ICollection<ServiceDto>> GetAllServicesAvailableForClientWithLangAsync(string lang);
     public Task AddServiceAsync(AddServiceDto addServiceDto);
     public Task<AllServicesDto> GerAllServicesAsync(string lang);
     public Task<Service?> GetServiceByIdAsync(int serviceId);
-    Task<ServiceEditDTO?> GetServiceForEditAsync(int serviceId);
+    Task<ServiceEditDto?> GetServiceForEditAsync(int serviceId);
 
     Task DeleteServiceAsync(int serviceId);
-    public Task EditServiceAsync(int serviceId, ServiceEditDTO editDto);
-    public Task<List<ServiceCategoryDTO>> GetAllServiceCategories();
-    Task<ICollection<ServiceDTO>> GetAllServicesForReceptionistAsync(string lang);
+    public Task EditServiceAsync(int serviceId, ServiceEditDto editDto);
+    public Task<List<ServiceCategoryDto>> GetAllServiceCategories();
+    Task<ICollection<ServiceDto>> GetAllServicesForReceptionistAsync(string lang);
 }

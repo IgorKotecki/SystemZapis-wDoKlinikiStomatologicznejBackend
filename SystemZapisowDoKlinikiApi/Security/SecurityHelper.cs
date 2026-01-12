@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
-namespace ProjektSemestralnyTinWebApi.Security;
+namespace SystemZapisowDoKlinikiApi.Security;
 
 public class SecurityHelper
 {
@@ -48,7 +48,7 @@ public class SecurityHelper
 
         return currentHashedPassword;
     }
-    
+
     public static string GetResetPasswordToken()
     {
         var randomNumber = new byte[16];

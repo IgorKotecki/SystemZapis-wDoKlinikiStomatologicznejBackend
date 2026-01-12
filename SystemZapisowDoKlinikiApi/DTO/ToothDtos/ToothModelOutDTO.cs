@@ -1,6 +1,6 @@
-﻿namespace SystemZapisowDoKlinikiApi.DTO;
+﻿namespace SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 
-public class ToothModelOutDTO
+public class ToothModelOutDto
 {
-    public ICollection<ToothOutDTO> Teeth { get; set; } = new List<ToothOutDTO>();
+    public ICollection<ToothOutDto> Teeth { get; set; } = new List<ToothOutDto>();
 }

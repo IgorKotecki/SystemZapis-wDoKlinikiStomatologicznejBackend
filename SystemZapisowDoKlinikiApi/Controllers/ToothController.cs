@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
@@ -18,7 +19,7 @@ public class ToothController : ControllerBase
 
     [HttpGet]
     [Route("teeth-model")]
-    public async Task<ActionResult<ToothModelOutDTO>> GetToothModelAsync([FromQuery] int userId,
+    public async Task<ActionResult<ToothModelOutDto>> GetToothModelAsync([FromQuery] int userId,
         [FromQuery] string lang)
     {
         var request = new ToothModelRequest()
@@ -35,7 +36,7 @@ public class ToothController : ControllerBase
 
     [HttpPut]
     [Route("teeth-model")]
-    public async Task<IActionResult> UpdateToothModelAsync([FromBody] ToothModelInDTO request)
+    public async Task<IActionResult> UpdateToothModelAsync([FromBody] ToothModelInDto request)
     {
         await _toothService.UpdateToothModelAsync(request);
 

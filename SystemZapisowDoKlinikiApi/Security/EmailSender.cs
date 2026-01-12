@@ -1,7 +1,8 @@
-﻿using System.Net;
-using System.Net.Mail;
+﻿//TODO: uncomment for production
+// using System.Net;
+// using System.Net.Mail;
 
-namespace ProjektSemestralnyTinWebApi.Security;
+namespace SystemZapisowDoKlinikiApi.Security;
 
 public class EmailSender : IEmailService
 {
@@ -16,7 +17,8 @@ public class EmailSender : IEmailService
 
     public async Task SendEmailAsync(string? to, string subject, string body)
     {
-        var mail = _configuration["EmailSettings:Mail"]!;
+        //TODO: uncomment for production
+        /*var mail = _configuration["EmailSettings:Mail"]!;
         var password = _configuration["EmailSettings:Password"]!;
         var smtpHost = _configuration["EmailSettings:Host"]!;
         var smtpPort = int.Parse(_configuration["EmailSettings:Port"] ?? "587");
@@ -49,6 +51,6 @@ public class EmailSender : IEmailService
             throw;
         }
 
-        return;
+        return;*/
     }
 }

@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SystemZapisowDoKlinikiApi.Controllers;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.AdditionalInformationDtos;
 using SystemZapisowDoKlinikiApi.Models;
-using SystemZapisowDoKlinikiApi.Services;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -29,14 +29,14 @@ public class AdditionalInformationRepository : IAdditionalInformationRepository
         return new AddInformationOutDto()
         {
             Id = addInformation.Id,
-            Body = addInformationDto.language == "pl" ? addInformation.BodyPl : addInformation.BodyEn
+            Body = addInformationDto.Language == "pl" ? addInformation.BodyPl : addInformation.BodyEn
         };
     }
 
     public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
     {
-        var addInformations = await _context.AdditionalInformations.ToListAsync();
-        var result = addInformations.Select(ai => new AddInformationOutDto
+        var addInformation = await _context.AdditionalInformations.ToListAsync();
+        var result = addInformation.Select(ai => new AddInformationOutDto
         {
             Id = ai.Id,
             Body = lang == "pl" ? ai.BodyPl : ai.BodyEn

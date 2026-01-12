@@ -1,6 +1,7 @@
 ﻿using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.DTO.TimeBlocksDtos;
 
-namespace SystemZapisowDoKlinikiApi.Services;
+namespace SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 public interface ITimeBlockService
 {

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Services;
+using SystemZapisowDoKlinikiApi.DTO.ServiceDtos;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
 
@@ -19,7 +19,7 @@ public class ServiceController : ControllerBase
     }
 
     [HttpGet("user-services")]
-    public async Task<ActionResult<ICollection<ServiceDTO>>> GetAllServicesAvailableForClientWithLangAsync(
+    public async Task<ActionResult<ICollection<ServiceDto>>> GetAllServicesAvailableForClientWithLangAsync(
         [FromQuery] string lang)
     {
         var services = await _serviceService.GetAllServicesAvailableForClientWithLangAsync(lang);
@@ -32,7 +32,7 @@ public class ServiceController : ControllerBase
 
     [HttpPost]
     [Route("service")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Doctor,Receptionist,Admin")]
     public async Task<IActionResult> AddServiceAsync([FromBody] AddServiceDto addServiceDto)
     {
         await _serviceService.AddServiceAsync(addServiceDto);
@@ -44,7 +44,7 @@ public class ServiceController : ControllerBase
 
     [HttpGet("receptionist-services")]
     [Authorize(Roles = "Doctor,Receptionist,Admin")]
-    public async Task<ActionResult<ICollection<ServiceDTO>>> GetAllServicesForReceptionistAsync([FromQuery] string lang)
+    public async Task<ActionResult<ICollection<ServiceDto>>> GetAllServicesForReceptionistAsync([FromQuery] string lang)
     {
         var services = await _serviceService.GetAllServicesForReceptionistAsync(lang);
 
@@ -65,7 +65,7 @@ public class ServiceController : ControllerBase
 
     [HttpDelete]
     [Route("service/{serviceId}")]
-    //[Authorize(Roles = "Admin")] tu dodanie recepcjonisty i jezeli chcemy to tez lekarza
+    [Authorize(Roles = "Admin,Receptionist,Doctor")]
     public async Task<IActionResult> DeleteServiceAsync([FromRoute] int serviceId)
     {
         await _serviceService.DeleteServiceAsync(serviceId);
@@ -76,8 +76,9 @@ public class ServiceController : ControllerBase
     }
 
     [HttpPut("editService/{serviceId}")]
+    [Authorize(Roles = "Admin,Receptionist,Doctor")]
     public async Task<IActionResult> EditServiceAsync([FromRoute] int serviceId,
-        [FromBody] ServiceEditDTO serviceEditDto)
+        [FromBody] ServiceEditDto serviceEditDto)
     {
         try
         {
@@ -112,6 +113,7 @@ public class ServiceController : ControllerBase
     }
 
     [HttpGet("edit/{serviceId}")]
+    [Authorize(Roles = "Admin,Receptionist,Doctor")]
     public async Task<IActionResult> GetServiceForEdit(int serviceId)
     {
         var service = await _serviceService.GetServiceForEditAsync(serviceId);
@@ -124,6 +126,7 @@ public class ServiceController : ControllerBase
 
     [HttpPost]
     [Route("service/add")]
+    [Authorize(Roles = "Doctor,Receptionist,Admin")]
     public async Task<IActionResult> AddServiceForTestAsync([FromBody] AddServiceDto addServiceDto)
     {
         await _serviceService.AddServiceAsync(addServiceDto);

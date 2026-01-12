@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SystemZapisowDoKlinikiApi.DTO;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Models;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -33,12 +35,12 @@ public class UserRepository : IUserRepository
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
 
-    public async Task<UserDTO?> GetUserByIdAsync(int id)
+    public async Task<UserDto?> GetUserByIdAsync(int id)
     {
         return await _context.Users
             .Include(u => u.Roles)
             .Where(u => u.Id == id)
-            .Select(u => new UserDTO()
+            .Select(u => new UserDto()
             {
                 Id = u.Id,
                 Name = u.Name,
@@ -84,14 +86,14 @@ public class UserRepository : IUserRepository
         var users = await query
             .Skip(page * pageSize)
             .Take(pageSize)
-            .Select(u => new UserDTO()
+            .Select(u => new UserDto()
             {
                 Email = u.Email,
                 Id = u.Id,
                 Name = u.Name,
                 Surname = u.Surname,
                 PhoneNumber = u.PhoneNumber,
-                RoleName = u.Roles!.Name,
+                RoleName = u.Roles.Name,
                 PhotoURL = u.PhotoURL
             })
             .ToListAsync();

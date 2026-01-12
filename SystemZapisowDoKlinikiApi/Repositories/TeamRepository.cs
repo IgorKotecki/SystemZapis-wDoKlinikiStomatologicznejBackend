@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using SystemZapisowDoKlinikiApi.DTO;
-using SystemZapisowDoKlinikiApi.Models;
+using SystemZapisowDoKlinikiApi.Context;
+using SystemZapisowDoKlinikiApi.DTO.UserDtos;
+using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
 
@@ -13,7 +14,7 @@ public class TeamRepository : ITeamRepository
         _context = context;
     }
 
-    public async Task<ICollection<TeamDTO>> GetAllTeamMembersAsync()
+    public async Task<ICollection<TeamDto>> GetAllTeamMembersAsync()
     {
         var staffRoles = new int[] { 1, 2 };
 
@@ -21,7 +22,7 @@ public class TeamRepository : ITeamRepository
             .Where(u => staffRoles.Contains(u.RolesId))
             .Include(u => u.Doctor)
             .Include(u => u.Roles)
-            .Select(u => new TeamDTO
+            .Select(u => new TeamDto
             {
                 Id = u.Id,
                 Name = u.Name,
