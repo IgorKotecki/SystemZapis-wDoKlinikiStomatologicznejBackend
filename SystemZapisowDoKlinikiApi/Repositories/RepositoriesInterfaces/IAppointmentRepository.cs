@@ -5,7 +5,14 @@ namespace SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 public interface IAppointmentRepository
 {
     public Task CreateAppointmentGuestAsync(BookAppointmentRequestDto appointmentRequest, int userId);
-    public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang);
+
+    public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(
+        int userId,
+        string lang,
+        bool showCancelled,
+        bool showCompleted,
+        bool showPlanned
+    );
 
     Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(
         int doctorId,

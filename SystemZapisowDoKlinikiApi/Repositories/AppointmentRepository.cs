@@ -102,44 +102,58 @@ public class AppointmentRepository : IAppointmentRepository
         }
     }
 
-    public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang)
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId,
+        string lang,
+        bool showCancelled,
+        bool showCompleted,
+        bool showPlanned)
     {
-        var appointments = await GetAppointmentsQuery()
-            .Where(a => a.UserId == userId)
-            .ToListAsync();
-
-        var completedAppointments = await _context.CompletedAppointments
-            .Where(ca => ca.UserId == userId).Include(completedAppointment => completedAppointment.User)
-            .ToListAsync();
-
-        var cancelledAppointments = await _context.CancelledAppointments
-            .Where(ca => ca.UserId == userId)
-            .ToListAsync();
-
         var doctorsUsers = _context.Users.Where(u => u.RolesId == 1).ToList();
+        var result = new List<AppointmentDto>();
+        if (showPlanned)
+        {
+            var appointments = await GetAppointmentsQuery()
+                .Where(a => a.UserId == userId)
+                .ToListAsync();
 
-        var appointmentsDto = appointments
-            .GroupBy(a => a.AppointmentGroupId)
-            .Select(group => MapToAppointmentDto(group, lang))
-            .ToList();
+            var appointmentsDto = appointments
+                .GroupBy(a => a.AppointmentGroupId)
+                .Select(group => MapToAppointmentDto(group, lang))
+                .ToList();
 
-        var completedAppointmentsDto = completedAppointments
-            .GroupBy(a => a.AppointmentGroupId)
-            .Select(group => MapToCompletedAppointmentDto(group!, doctorsUsers, lang))
-            .ToList();
+            result = appointmentsDto;
+        }
 
-        var cancelledAppointmentsDto = cancelledAppointments
-            .GroupBy(a => a.AppointmentGroupId)
-            .Select(group => MapToCancelledAppointmentDto(group!, doctorsUsers, lang))
-            .ToList();
+        if (showCancelled)
+        {
+            var cancelledAppointments = await _context.CancelledAppointments
+                .Where(ca => ca.UserId == userId)
+                .ToListAsync();
 
-        var result = appointmentsDto
-            .Concat(completedAppointmentsDto)
-            .Concat(cancelledAppointmentsDto)
-            .OrderByDescending(a => a.StartTime)
-            .ToList();
+            var cancelledAppointmentsDto = cancelledAppointments
+                .GroupBy(a => a.AppointmentGroupId)
+                .Select(group => MapToCancelledAppointmentDto(group!, doctorsUsers, lang))
+                .ToList();
 
-        return result;
+            result = result.Concat(cancelledAppointmentsDto).ToList();
+        }
+
+        if (showCompleted)
+        {
+            var completedAppointments = await _context.CompletedAppointments
+                .Where(ca => ca.UserId == userId).Include(completedAppointment => completedAppointment.User)
+                .ToListAsync();
+
+
+            var completedAppointmentsDto = completedAppointments
+                .GroupBy(a => a.AppointmentGroupId)
+                .Select(group => MapToCompletedAppointmentDto(group!, doctorsUsers, lang))
+                .ToList();
+
+            result = result.Concat(completedAppointmentsDto).ToList();
+        }
+
+        return result.OrderByDescending(r => r.StartTime).ToList();
     }
 
     private AppointmentDto MapToCompletedAppointmentDto(IGrouping<string, CompletedAppointment> group,

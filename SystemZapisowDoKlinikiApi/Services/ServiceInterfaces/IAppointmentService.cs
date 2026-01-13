@@ -5,7 +5,14 @@ namespace SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 public interface IAppointmentService
 {
     public Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest);
-    public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang);
+
+    public Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(
+        int userId,
+        string lang,
+        bool showCancelled,
+        bool showCompleted,
+        bool showPlanned
+    );
 
     Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(
         int doctorId, string lang, DateTime date, bool showCancelled, bool showCompleted);

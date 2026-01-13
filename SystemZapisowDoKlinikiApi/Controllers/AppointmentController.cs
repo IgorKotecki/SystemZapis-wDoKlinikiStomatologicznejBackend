@@ -28,18 +28,33 @@ public class AppointmentController : ControllerBase
 
     [HttpGet("registered/appointments")]
     [Authorize(Roles = "Registered_user,Doctor,Admin")]
-    public async Task<IActionResult> GetAppointmentsByUserIdAsync([FromQuery] string lang)
+    public async Task<IActionResult> GetAppointmentsByUserIdAsync(
+        [FromQuery] string lang,
+        [FromQuery] bool showCancelled = true,
+        [FromQuery] bool showCompleted = true,
+        [FromQuery] bool showPlanned = true,
+        [FromQuery] int userId = 0
+    )
     {
-        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null)
+        if (userId == 0)
         {
-            return Unauthorized();
+            userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "0");
+            if (userId == 0)
+            {
+                return Unauthorized();
+            }
         }
 
         _logger.LogInformation("Getting appointments for user with id: {userId}, with language preference: {Lang}",
             userId, lang);
 
-        var appointments = await _appointmentService.GetAppointmentsByUserIdAsync(int.Parse(userId), lang);
+        var appointments = await _appointmentService
+            .GetAppointmentsByUserIdAsync(
+                userId,
+                lang,
+                showCancelled,
+                showCompleted,
+                showPlanned);
 
         return Ok(appointments);
     }

@@ -1,4 +1,5 @@
 using SystemZapisowDoKlinikiApi.DTO.AppointmentDtos;
+using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 using SystemZapisowDoKlinikiApi.Security;
@@ -31,11 +32,11 @@ public class AppointmentService : IAppointmentService
             throw new ArgumentNullException(nameof(appointmentRequest), "Appointment request cannot be null.");
         }
 
-        // if (appointmentRequest.StartTime < DateTime.Now)
-        // {
-        //     throw new BusinessException("APPOINTMENT_IN_PAST",
-        //         "Cannot book an appointment in the past.");
-        // }
+        if (appointmentRequest.StartTime < DateTime.Now)
+        {
+            throw new BusinessException("APPOINTMENT_IN_PAST",
+                "Cannot book an appointment in the past.");
+        }
 
         var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
 
@@ -68,14 +69,22 @@ public class AppointmentService : IAppointmentService
             $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {appointmentRequest.StartTime}.\n\nBest regards,\nClinic Team");
     }
 
-    public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(int userId, string lang)
+    public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(
+        int userId,
+        string lang,
+        bool showCancelled,
+        bool showCompleted,
+        bool showPlanned
+    )
     {
         if (userId <= 0)
         {
             throw new ArgumentException("User ID must be a positive integer.", nameof(userId));
         }
 
-        var appointments = await _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang);
+        var appointments =
+            await _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang, showCancelled, showCompleted,
+                showPlanned);
 
         return appointments;
     }
@@ -110,6 +119,12 @@ public class AppointmentService : IAppointmentService
         if (user == null)
         {
             throw new InvalidOperationException("User should not be null at this point.");
+        }
+
+        if (bookAppointmentRequestDto.StartTime < DateTime.Now)
+        {
+            throw new BusinessException("APPOINTMENT_IN_PAST",
+                "Cannot book an appointment in the past.");
         }
 
         await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
