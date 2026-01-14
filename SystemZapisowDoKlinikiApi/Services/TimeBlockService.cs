@@ -1,6 +1,7 @@
 ﻿using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.DTO.TimeBlocksDtos;
+using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
@@ -49,11 +50,23 @@ public class TimeBlockService : ITimeBlockService
 
     public async Task DeleteWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
     {
+        if (workingHoursDto.StartTime < DateTime.Now)
+        {
+            throw new BusinessException("INVALID_WORKING_HOURS_DELETION",
+                "Cannot delete working hours for today or past dates.");
+        }
+
         await _timeBlockRepository.DeleteWorkingHoursAsync(doctorId, workingHoursDto);
     }
 
     public async Task AddWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
     {
+        if (workingHoursDto.StartTime < DateTime.Now)
+        {
+            throw new BusinessException("INVALID_WORKING_HOURS_ADDITION",
+                "Cannot add working hours for today or past dates.");
+        }
+
         await _timeBlockRepository.AddWorkingHoursAsync(doctorId, workingHoursDto);
     }
 }
