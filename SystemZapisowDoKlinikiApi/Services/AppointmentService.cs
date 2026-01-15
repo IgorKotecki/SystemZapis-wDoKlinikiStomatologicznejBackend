@@ -175,7 +175,7 @@ public class AppointmentService : IAppointmentService
     public async Task CancelAppointmentAsync(CancellationDto cancellationDto)
     {
         var appointment =
-            await _appointmentRepository.GetCancelledAppointmentByIdAsync(cancellationDto.AppointmentGuid);
+            await _appointmentRepository.GetAppointmentsByGuidAsync(cancellationDto.AppointmentGuid);
         if (appointment.StartTime < DateTime.Now)
         {
             throw new BusinessException("CANCELLATION_OF_PAST_APPOINTMENT",

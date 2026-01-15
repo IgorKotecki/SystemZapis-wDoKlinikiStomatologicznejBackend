@@ -36,4 +36,5 @@ public interface IAppointmentRepository
     Task CancelAppointmentAsync(CancellationDto appointmentGuid);
     Task<AppointmentDto> GetCancelledAppointmentByIdAsync(string appointmentGuid);
     Task CompleteAppointmentAsync(CompletionDto completionDto);
+    Task<AppointmentDto> GetAppointmentsByGuidAsync(string cancellationDtoAppointmentGuid);
 }

@@ -657,6 +657,20 @@ public class AppointmentRepository : IAppointmentRepository
         }
     }
 
+    public async Task<AppointmentDto> GetAppointmentsByGuidAsync(string cancellationDtoAppointmentGuid)
+    {
+        var appointments = await GetAppointmentsQuery()
+            .Where(a => a.AppointmentGroupId == cancellationDtoAppointmentGuid)
+            .ToListAsync();
+
+        var appointmentsDto = appointments
+            .GroupBy(a => a.AppointmentGroupId)
+            .Select(group => MapToAppointmentDto(group, "pl"))
+            .ToList();
+
+        return appointmentsDto.First();
+    }
+
 
     private IQueryable<Appointment> GetAppointmentsQuery()
     {
