@@ -174,13 +174,20 @@ public class AppointmentService : IAppointmentService
 
     public async Task CancelAppointmentAsync(CancellationDto cancellationDto)
     {
-        await _appointmentRepository.CancelAppointmentAsync(cancellationDto);
         var appointment =
             await _appointmentRepository.GetCancelledAppointmentByIdAsync(cancellationDto.AppointmentGuid);
+        if (appointment.StartTime < DateTime.Now)
+        {
+            throw new BusinessException("CANCELLATION_OF_PAST_APPOINTMENT",
+                "Cannot cancel an appointment that is in the past.");
+        }
+
+        await _appointmentRepository.CancelAppointmentAsync(cancellationDto);
         var user = appointment.User;
         var email = user.Email;
-        //await _emailService.SendEmailAsync(email, "Appointment Cancellation",
-        //    $"Dear {user.Name},\n\nYour appointment scheduled on {appointment.StartTime} has been cancelled.\n\nBest regards,\nClinic Team");
+        //TODO
+        // await _emailService.SendEmailAsync(email, "Appointment Cancellation",
+        //     $"Dear {user.Name},\n\nYour appointment scheduled on {appointment.StartTime} has been cancelled.\n\nBest regards,\nClinic Team");
     }
 
     public async Task CompleteAppointmentAsync(CompletionDto completionDto)
