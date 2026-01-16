@@ -14,6 +14,8 @@ using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var isTestEnvironment = builder.Environment.EnvironmentName == "Test";
+
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -71,8 +73,17 @@ builder.Logging.AddFilter(
     "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware",
     LogLevel.None);
 
-builder.Services.AddDbContext<ClinicDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+if (isTestEnvironment)
+{
+    builder.Services.AddDbContext<ClinicDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("TestConnection")));
+}
+else
+{
+    builder.Services.AddDbContext<ClinicDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 builder.Services.AddAuthentication(options =>
     {
@@ -122,3 +133,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();
+
+public partial class Program
+{
+}

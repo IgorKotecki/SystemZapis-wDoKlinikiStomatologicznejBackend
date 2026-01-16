@@ -34,7 +34,7 @@ public class AdditionalInformationController : ControllerBase
     }
 
     [HttpGet("")]
-    //[Authorize(Roles = "Doctor")]
+    [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> GetAddInformationAsync([FromQuery] string lang)
     {
         _logger.LogInformation("Retrieving additional information entries for doctor with language preference: {Lang}",
@@ -44,7 +44,7 @@ public class AdditionalInformationController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    //[Authorize(Roles = "Doctor")]
+    [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> GetAddInformationByIdAsync([FromRoute] int id, string lang)
     {
         _logger.LogInformation("Retrieving additional information entry with id: {Id}", id);
@@ -53,6 +53,7 @@ public class AdditionalInformationController : ControllerBase
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Doctor")]
     public async Task<IActionResult> DeleteAddInformationByIdAsync([FromRoute] int id)
     {
         _logger.LogInformation("Deleting additional information entry with id: {Id}", id);

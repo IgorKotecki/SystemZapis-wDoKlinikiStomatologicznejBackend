@@ -35,6 +35,9 @@ public class UserController : ControllerBase
     [HttpPut("edit/{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDto dto)
     {
+        if (ModelState.IsValid == false)
+            return BadRequest(ModelState);
+
         var updated = await _userService.UpdateUserAsync(id, dto);
 
         if (updated == null)

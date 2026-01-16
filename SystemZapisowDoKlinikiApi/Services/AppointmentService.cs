@@ -1,4 +1,6 @@
+using System.Globalization;
 using SystemZapisowDoKlinikiApi.DTO.AppointmentDtos;
+using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
@@ -27,47 +29,17 @@ public class AppointmentService : IAppointmentService
 
     public async Task CreateAppointmentGuestAsync(AppointmentRequest appointmentRequest)
     {
-        if (appointmentRequest == null)
-        {
-            throw new ArgumentNullException(nameof(appointmentRequest), "Appointment request cannot be null.");
-        }
+        ValidateAppointmentRequest(appointmentRequest);
 
-        if (appointmentRequest.StartTime < DateTime.Now)
-        {
-            throw new BusinessException("APPOINTMENT_IN_PAST",
-                "Cannot book an appointment in the past.");
-        }
+        var user = await GetOrCreateGuestUserAsync(appointmentRequest);
 
-        var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
-
-        if (user == null)
-        {
-            user = await _userService.CreateGuestUserAsync(
-                appointmentRequest.Name,
-                appointmentRequest.Surname,
-                appointmentRequest.Email,
-                appointmentRequest.PhoneNumber
-            );
-        }
-        else
-        {
-            CheckUserDataForAppointment(appointmentRequest, user);
-        }
-
-        var bookAppointmentRequestDto = new BookAppointmentRequestDto
-        {
-            DoctorId = appointmentRequest.DoctorId,
-            StartTime = appointmentRequest.StartTime,
-            Duration = appointmentRequest.Duration,
-            ServicesIds = appointmentRequest.ServicesIds
-        };
-
+        var bookAppointmentRequestDto = MapToBookAppointmentRequest(appointmentRequest);
 
         await _appointmentRepository.CreateAppointmentGuestAsync(bookAppointmentRequestDto, user.Id);
 
-        await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
-            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {appointmentRequest.StartTime}.\n\nBest regards,\nClinic Team");
+        await SendConfirmationEmailAsync(user, appointmentRequest.StartTime);
     }
+
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsByUserIdAsync(
         int userId,
@@ -77,16 +49,29 @@ public class AppointmentService : IAppointmentService
         bool showPlanned
     )
     {
+        ValidateUserId(userId);
+
+        return await FetchAppointmentsByUserAsync(userId, lang, showCancelled, showCompleted, showPlanned);
+    }
+
+    public static void ValidateUserId(int userId)
+    {
         if (userId <= 0)
         {
             throw new ArgumentException("User ID must be a positive integer.", nameof(userId));
         }
+    }
 
-        var appointments =
-            await _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang, showCancelled, showCompleted,
-                showPlanned);
-
-        return appointments;
+    private async Task<ICollection<AppointmentDto>> FetchAppointmentsByUserAsync(
+        int userId,
+        string lang,
+        bool showCancelled,
+        bool showCompleted,
+        bool showPlanned
+    )
+    {
+        return await _appointmentRepository.GetAppointmentsByUserIdAsync(userId, lang, showCancelled, showCompleted,
+            showPlanned);
     }
 
     public async Task<ICollection<AppointmentDto>> GetAppointmentsByDoctorIdAsync(
@@ -96,24 +81,54 @@ public class AppointmentService : IAppointmentService
         bool showCancelled,
         bool showCompleted)
     {
+        ValidateDoctorId(doctorId);
+
+        var mondayDate = GetMonday(date);
+
+        return await FetchAppointmentsByDoctorAsync(doctorId, lang, mondayDate, showCancelled, showCompleted);
+    }
+
+    private static void ValidateDoctorId(int doctorId)
+    {
         if (doctorId <= 0)
         {
             throw new ArgumentException("Doctor ID must be a positive integer.", nameof(doctorId));
         }
+    }
 
-        var mondayDate = GetMonday(date);
-
-        var appointments = await _appointmentRepository
+    private async Task<ICollection<AppointmentDto>> FetchAppointmentsByDoctorAsync(
+        int doctorId,
+        string lang,
+        DateTime mondayDate,
+        bool showCancelled,
+        bool showCompleted)
+    {
+        return await _appointmentRepository
             .GetAppointmentsByDoctorIdAsync(doctorId, mondayDate, lang, showCancelled, showCompleted);
-
-        return appointments;
     }
 
     public async Task BookAppointmentForRegisteredUserAsync(int userId,
         BookAppointmentRequestDto bookAppointmentRequestDto)
     {
+        ValidateBookAppointmentRequest(bookAppointmentRequestDto);
+
+        var user = await GetRegisteredUserAsync(userId);
+
         await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
 
+        await SendAppointmentConfirmationEmailAsync(user, bookAppointmentRequestDto.StartTime);
+    }
+
+    private static void ValidateBookAppointmentRequest(BookAppointmentRequestDto bookAppointmentRequestDto)
+    {
+        if (bookAppointmentRequestDto.StartTime < DateTime.Now)
+        {
+            throw new BusinessException("APPOINTMENT_IN_PAST", "Cannot book an appointment in the past.");
+        }
+    }
+
+    private async Task<UserDto> GetRegisteredUserAsync(int userId)
+    {
         var user = await _userService.GetUserByIdAsync(userId);
 
         if (user == null)
@@ -121,16 +136,17 @@ public class AppointmentService : IAppointmentService
             throw new InvalidOperationException("User should not be null at this point.");
         }
 
-        if (bookAppointmentRequestDto.StartTime < DateTime.Now)
-        {
-            throw new BusinessException("APPOINTMENT_IN_PAST",
-                "Cannot book an appointment in the past.");
-        }
-
-        await _emailService.SendEmailAsync(user.Email, "Appointment Confirmation",
-            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {bookAppointmentRequestDto.StartTime}.\n\nBest regards,\nClinic Team");
+        return user;
     }
 
+    private async Task SendAppointmentConfirmationEmailAsync(UserDto user, DateTime startTime)
+    {
+        await _emailService.SendEmailAsync(
+            user.Email,
+            "Appointment Confirmation",
+            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {startTime}.\n\nBest regards,\nClinic Team"
+        );
+    }
 
     public async Task AddInfoToAppointmentAsync(AddInfoToAppointmentDto addInfoToAppointmentDto)
     {
@@ -138,6 +154,13 @@ public class AppointmentService : IAppointmentService
     }
 
     public async Task UpdateAppointmentStatusAsync(UpdateAppointmentStatusDto updateAppointmentStatusDto)
+    {
+        ValidateUpdateAppointmentStatusDto(updateAppointmentStatusDto);
+
+        await UpdateStatusInRepositoryAsync(updateAppointmentStatusDto);
+    }
+
+    private static void ValidateUpdateAppointmentStatusDto(UpdateAppointmentStatusDto updateAppointmentStatusDto)
     {
         if (updateAppointmentStatusDto == null)
         {
@@ -147,9 +170,12 @@ public class AppointmentService : IAppointmentService
 
         if (updateAppointmentStatusDto.StatusId <= 0 || updateAppointmentStatusDto.StatusId > 4)
         {
-            throw new ArgumentException("StatusId don't mach any status", nameof(updateAppointmentStatusDto.StatusId));
+            throw new ArgumentException("StatusId don't match any status", nameof(updateAppointmentStatusDto.StatusId));
         }
+    }
 
+    private async Task UpdateStatusInRepositoryAsync(UpdateAppointmentStatusDto updateAppointmentStatusDto)
+    {
         await _appointmentRepository.UpdateAppointmentStatusAsync(updateAppointmentStatusDto);
     }
 
@@ -174,18 +200,37 @@ public class AppointmentService : IAppointmentService
 
     public async Task CancelAppointmentAsync(CancellationDto cancellationDto)
     {
-        var appointment =
-            await _appointmentRepository.GetAppointmentsByGuidAsync(cancellationDto.AppointmentGuid);
-        if (appointment.StartTime < DateTime.Now)
-        {
-            throw new BusinessException("CANCELLATION_OF_PAST_APPOINTMENT",
-                "Cannot cancel an appointment that is in the past.");
-        }
+        var appointment = await GetAppointmentByGuidAsync(cancellationDto.AppointmentGuid);
+
+        ValidateCancellation(appointment);
 
         await _appointmentRepository.CancelAppointmentAsync(cancellationDto);
+
+        NotifyUserAboutCancellation(appointment);
+    }
+
+    private async Task<AppointmentDto> GetAppointmentByGuidAsync(string appointmentGuid)
+    {
+        return await _appointmentRepository.GetAppointmentsByGuidAsync(appointmentGuid);
+    }
+
+    private static void ValidateCancellation(AppointmentDto appointment)
+    {
+        if (appointment.StartTime < DateTime.Now)
+        {
+            throw new BusinessException(
+                "CANCELLATION_OF_PAST_APPOINTMENT",
+                "Cannot cancel an appointment that is in the past."
+            );
+        }
+    }
+
+    private void NotifyUserAboutCancellation(AppointmentDto appointment)
+    {
         var user = appointment.User;
         var email = user.Email;
-        //TODO
+
+        //TODO Uncomment and implement email sending logic when ready
         // await _emailService.SendEmailAsync(email, "Appointment Cancellation",
         //     $"Dear {user.Name},\n\nYour appointment scheduled on {appointment.StartTime} has been cancelled.\n\nBest regards,\nClinic Team");
     }
@@ -212,5 +257,60 @@ public class AppointmentService : IAppointmentService
     {
         var diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
         return date.AddDays(-diff).Date;
+    }
+
+    private static void ValidateAppointmentRequest(AppointmentRequest appointmentRequest)
+    {
+        if (appointmentRequest == null)
+            throw new ArgumentNullException(nameof(appointmentRequest), "Appointment request cannot be null.");
+
+        EnsureAppointmentIsNotInPast(appointmentRequest.StartTime);
+    }
+
+    public static void EnsureAppointmentIsNotInPast(DateTime startTime)
+    {
+        if (startTime < DateTime.Now)
+            throw new BusinessException(
+                "APPOINTMENT_IN_PAST",
+                "Cannot book an appointment in the past."
+            );
+    }
+
+    private async Task<User> GetOrCreateGuestUserAsync(AppointmentRequest appointmentRequest)
+    {
+        var user = await _userService.GetUserByEmailAsync(appointmentRequest.Email);
+
+        if (user == null)
+        {
+            return await _userService.CreateGuestUserAsync(
+                appointmentRequest.Name,
+                appointmentRequest.Surname,
+                appointmentRequest.Email,
+                appointmentRequest.PhoneNumber
+            );
+        }
+
+        CheckUserDataForAppointment(appointmentRequest, user);
+        return user;
+    }
+
+    private static BookAppointmentRequestDto MapToBookAppointmentRequest(AppointmentRequest appointmentRequest)
+    {
+        return new BookAppointmentRequestDto
+        {
+            DoctorId = appointmentRequest.DoctorId,
+            StartTime = appointmentRequest.StartTime,
+            Duration = appointmentRequest.Duration,
+            ServicesIds = appointmentRequest.ServicesIds
+        };
+    }
+
+    public async Task SendConfirmationEmailAsync(User user, DateTime startTime)
+    {
+        await _emailService.SendEmailAsync(
+            user.Email,
+            "Appointment Confirmation",
+            $"Dear {user.Name},\n\nYour appointment has been successfully booked.\n Date : {startTime.ToString(CultureInfo.InvariantCulture)}.\n\nBest regards,\nClinic Team"
+        );
     }
 }

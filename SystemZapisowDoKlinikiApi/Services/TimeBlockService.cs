@@ -39,34 +39,50 @@ public class TimeBlockService : ITimeBlockService
 
     public async Task<List<WorkingHoursDto>> GetWorkingHoursAsync(int doctorId, DateTime date)
     {
+        var (monday, sunday) = CalculateWeekRange(date);
+        return await _timeBlockRepository.GetWorkingHoursAsync(doctorId, monday, sunday);
+    }
+
+    private (DateTime Monday, DateTime Sunday) CalculateWeekRange(DateTime date)
+    {
         int daysFromMonday = date.DayOfWeek == DayOfWeek.Sunday
             ? 6
             : (int)date.DayOfWeek - 1;
 
         var monday = date.AddDays(-daysFromMonday);
         var sunday = monday.AddDays(6);
-        return await _timeBlockRepository.GetWorkingHoursAsync(doctorId, monday, sunday);
+        return (monday, sunday);
     }
 
     public async Task DeleteWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
+    {
+        ValidateWorkingHoursDeletion(workingHoursDto);
+
+        await _timeBlockRepository.DeleteWorkingHoursAsync(doctorId, workingHoursDto);
+    }
+
+    private void ValidateWorkingHoursDeletion(WorkingHoursDto workingHoursDto)
     {
         if (workingHoursDto.StartTime < DateTime.Now)
         {
             throw new BusinessException("INVALID_WORKING_HOURS_DELETION",
                 "Cannot delete working hours for today or past dates.");
         }
-
-        await _timeBlockRepository.DeleteWorkingHoursAsync(doctorId, workingHoursDto);
     }
 
     public async Task AddWorkingHoursAsync(int doctorId, WorkingHoursDto workingHoursDto)
+    {
+        ValidateWorkingHoursAddition(workingHoursDto);
+
+        await _timeBlockRepository.AddWorkingHoursAsync(doctorId, workingHoursDto);
+    }
+
+    private void ValidateWorkingHoursAddition(WorkingHoursDto workingHoursDto)
     {
         if (workingHoursDto.StartTime < DateTime.Now)
         {
             throw new BusinessException("INVALID_WORKING_HOURS_ADDITION",
                 "Cannot add working hours for today or past dates.");
         }
-
-        await _timeBlockRepository.AddWorkingHoursAsync(doctorId, workingHoursDto);
     }
 }

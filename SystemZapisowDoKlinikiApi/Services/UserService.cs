@@ -16,23 +16,31 @@ public class UserService : IUserService
 
     public Task<User> CreateGuestUserAsync(string name, string surname, string email, string phoneNumber)
     {
+        ValidateGuestUserDetails(name, surname, email, phoneNumber);
+        return _userRepository.CreateGuestUserAsync(name, surname, email, phoneNumber);
+    }
+
+    private void ValidateGuestUserDetails(string name, string surname, string email, string phoneNumber)
+    {
         if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(surname) ||
             string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phoneNumber))
         {
             throw new ArgumentException("All user details must be provided.");
         }
-
-        return _userRepository.CreateGuestUserAsync(name, surname, email, phoneNumber);
     }
 
     public Task<User?> GetUserByEmailAsync(string email)
+    {
+        ValidateEmail(email);
+        return _userRepository.GetUserByEmailAsync(email);
+    }
+
+    private void ValidateEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
             throw new ArgumentException("Email cannot be null or empty.", nameof(email));
         }
-
-        return _userRepository.GetUserByEmailAsync(email);
     }
 
     public Task<UserDto?> GetUserByIdAsync(int id)
@@ -47,13 +55,26 @@ public class UserService : IUserService
         if (user == null)
             return null;
 
+        MapUserUpdateDtoToUser(dto, user);
+
+        await _userRepository.UpdateUserAsync(user);
+
+        return MapUserToUserDto(user);
+    }
+
+    private void MapUserUpdateDtoToUser(UserUpdateDto dto, User user)
+    {
         user.Name = dto.Name;
         user.Surname = dto.Surname;
         user.PhoneNumber = dto.PhoneNumber;
         user.Email = dto.Email;
         user.PhotoURL = dto.PhotoUrl;
+    }
 
-        await _userRepository.UpdateUserAsync(user);
+    private UserDto MapUserToUserDto(User user)
+    {
+        if (user == null)
+            throw new ArgumentNullException(nameof(user), "User cannot be null.");
 
         return new UserDto
         {
@@ -62,7 +83,7 @@ public class UserService : IUserService
             Surname = user.Surname,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            RoleName = user.Roles?.Name ?? "",
+            RoleName = user.Roles.Name,
             PhotoURL = user.PhotoURL
         };
     }

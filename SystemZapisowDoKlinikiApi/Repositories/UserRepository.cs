@@ -105,17 +105,18 @@ public class UserRepository : IUserRepository
     {
         try
         {
-            var affectedRows = await _context.Users
-                .Where(u => u.Id == userId)
-                .ExecuteDeleteAsync();
-            if (affectedRows == 0)
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
             {
                 throw new KeyNotFoundException("User not found");
             }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
         }
         catch (Exception e)
         {
-            throw new Exception("Error deleting user", e);
+            throw;
         }
     }
 }

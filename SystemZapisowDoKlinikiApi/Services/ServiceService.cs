@@ -17,10 +17,7 @@ public class ServiceService : IServiceService
 
     public async Task<ICollection<ServiceDto>> GetAllServicesAvailableForClientWithLangAsync(string lang)
     {
-        if (string.IsNullOrWhiteSpace(lang))
-        {
-            throw new ArgumentException("Language code is required.");
-        }
+        ValidateLanguage(lang);
 
         var services = await _serviceRepository.GetAllServicesAvailableForClientWithLangAsync(lang);
 
@@ -32,7 +29,22 @@ public class ServiceService : IServiceService
         return services;
     }
 
+    private void ValidateLanguage(string lang)
+    {
+        if (string.IsNullOrWhiteSpace(lang))
+        {
+            throw new ArgumentException("Language code is required.");
+        }
+    }
+
     public async Task AddServiceAsync(AddServiceDto addServiceDto)
+    {
+        ValidateAddServiceDto(addServiceDto);
+
+        await _serviceRepository.AddServiceAsync(addServiceDto);
+    }
+
+    private void ValidateAddServiceDto(AddServiceDto addServiceDto)
     {
         if (addServiceDto == null)
         {
@@ -43,14 +55,11 @@ public class ServiceService : IServiceService
         {
             throw new ArgumentException("At least one price (LowPrice or HighPrice) must be provided.");
         }
-
-        await _serviceRepository.AddServiceAsync(addServiceDto);
     }
 
     public async Task<AllServicesDto> GerAllServicesAsync(string lang)
     {
-        if (string.IsNullOrEmpty(lang))
-            lang = "pl";
+        lang = EnsureValidLanguage(lang);
 
         var services = await _serviceRepository.GetAllServicesAsync(lang);
 
@@ -60,6 +69,11 @@ public class ServiceService : IServiceService
         }
 
         return services;
+    }
+
+    private string EnsureValidLanguage(string lang)
+    {
+        return string.IsNullOrEmpty(lang) ? "pl" : lang;
     }
 
     public async Task<Service?> GetServiceByIdAsync(int serviceId)

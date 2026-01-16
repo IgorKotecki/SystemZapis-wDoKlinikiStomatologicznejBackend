@@ -25,6 +25,12 @@ public class ToothService : IToothService
 
     public async Task<ToothStatusesDto> GetToothStatusesAsync(string language)
     {
+        ValidateLanguage(language);
+        return await _toothRepository.GetToothStatusesAsync(language);
+    }
+
+    private void ValidateLanguage(string language)
+    {
         if (string.IsNullOrWhiteSpace(language))
         {
             throw new ArgumentException("Language parameter is required", nameof(language));
@@ -35,7 +41,5 @@ public class ToothService : IToothService
             throw new ArgumentException("Unsupported language code. Supported codes are 'pl' and 'en'.",
                 nameof(language));
         }
-
-        return await _toothRepository.GetToothStatusesAsync(language);
     }
 }

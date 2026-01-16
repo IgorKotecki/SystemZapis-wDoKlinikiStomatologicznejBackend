@@ -25,31 +25,31 @@ public class AdditionalInformationService : IAdditionalInformationService
 
     public async Task<AddInformationOutDto> CreateAddInformationAsync(AddInformationDto addInformationDto)
     {
-        CheckAddInformationDto(addInformationDto);
-        var newAddIfno = await _additionalInformationRepository.CreateAddInformationAsync(addInformationDto);
-        return newAddIfno;
+        ValidateAddInformationDto(addInformationDto);
+
+        return await _additionalInformationRepository.CreateAddInformationAsync(addInformationDto);
     }
 
-    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
-    {
-        return await _additionalInformationRepository.GetAddInformationAsync(lang);
-    }
-
-    private void CheckAddInformationDto(AddInformationDto addInformationDto)
+    private static void ValidateAddInformationDto(AddInformationDto addInformationDto)
     {
         if (addInformationDto == null)
         {
             throw new ArgumentNullException(nameof(addInformationDto), "AddInformationDto cannot be null.");
         }
 
-        if (addInformationDto.BodyPl == null || addInformationDto.BodyPl.Trim() == "")
+        if (string.IsNullOrWhiteSpace(addInformationDto.BodyPl))
         {
-            throw new ArgumentException("BodyPlan cannot be null or empty.", nameof(addInformationDto.BodyPl));
+            throw new ArgumentException("BodyPl cannot be null or empty.", nameof(addInformationDto.BodyPl));
         }
 
-        if (addInformationDto.BodyEn == null || addInformationDto.BodyEn.Trim() == "")
+        if (string.IsNullOrWhiteSpace(addInformationDto.BodyEn))
         {
             throw new ArgumentException("BodyEn cannot be null or empty.", nameof(addInformationDto.BodyEn));
         }
+    }
+
+    public async Task<ICollection<AddInformationOutDto>> GetAddInformationAsync(string lang)
+    {
+        return await _additionalInformationRepository.GetAddInformationAsync(lang);
     }
 }
