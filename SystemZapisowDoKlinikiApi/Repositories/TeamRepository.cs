@@ -19,7 +19,11 @@ public class TeamRepository : ITeamRepository
         var staffRoles = new int[] { 1, 2 };
 
         return await _context.Users
-            .Where(u => staffRoles.Contains(u.RolesId))
+            .Where(u =>
+                staffRoles.Contains(u.RolesId) &&
+                u.Name != "newName" &&
+                u.Surname != "newSurname"
+            )
             .Include(u => u.Doctor)
             .Include(u => u.Roles)
             .Select(u => new TeamDto
