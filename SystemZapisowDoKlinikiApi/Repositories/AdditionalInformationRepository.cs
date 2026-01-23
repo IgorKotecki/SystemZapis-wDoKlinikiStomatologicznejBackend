@@ -37,10 +37,12 @@ public class AdditionalInformationRepository : IAdditionalInformationRepository
     {
         var addInformation = await _context.AdditionalInformations.ToListAsync();
         var result = addInformation.Select(ai => new AddInformationOutDto
-        {
-            Id = ai.Id,
-            Body = lang == "pl" ? ai.BodyPl : ai.BodyEn
-        }).ToList();
+            {
+                Id = ai.Id,
+                Body = lang == "pl" ? ai.BodyPl : ai.BodyEn
+            })
+            .OrderBy(ad => ad.Body)
+            .ToList();
         return result;
     }
 

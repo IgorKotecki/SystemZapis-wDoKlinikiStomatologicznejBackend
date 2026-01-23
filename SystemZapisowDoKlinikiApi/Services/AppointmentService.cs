@@ -23,7 +23,6 @@ public class AppointmentService : IAppointmentService
     {
         _appointmentRepository = appointmentRepository;
         _userService = userService;
-
         _emailService = emailService;
     }
 

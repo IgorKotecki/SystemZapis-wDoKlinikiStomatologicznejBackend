@@ -181,7 +181,7 @@ public class ServiceRepository : IServiceRepository
                     .Select(sc => lang == "pl" ? sc.NamePl : sc.NameEn)
                     .ToList()
             })
-            .OrderBy(s => s.Id)
+            .OrderBy(s => s.Name)
             .ToListAsync();
 
         var servicesByCategory = serviceDtos

@@ -82,6 +82,8 @@ public class UserRepository : IUserRepository
             );
         }
 
+        query = query.OrderBy(u => u.Surname).ThenBy(u => u.Name);
+
         var totalCount = await query.CountAsync();
         var users = await query
             .Skip(page * pageSize)
