@@ -27,7 +27,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpGet("registered/appointments")]
-    [Authorize(Roles = "Registered_user,Doctor,Admin")]
+    [Authorize(Roles = "Registered_user,Receptionist,Doctor,Admin")]
     public async Task<IActionResult> GetAppointmentsByUserIdAsync(
         [FromQuery] string lang,
         [FromQuery] bool showCancelled = true,
@@ -38,7 +38,12 @@ public class AppointmentController : ControllerBase
     {
         if (userId == 0)
         {
-            userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var userRole = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+            if (userRole != "Doctor" && userRole != "Receptionist")
+            {
+                userId = int.Parse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value ?? "0");
+            }
+
             if (userId == 0)
             {
                 return Unauthorized();

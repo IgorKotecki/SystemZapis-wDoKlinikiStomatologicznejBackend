@@ -127,15 +127,18 @@ public class AppointmentRepository : IAppointmentRepository
         if (showCancelled)
         {
             var cancelledAppointments = await _context.CancelledAppointments
-                .Where(ca => ca.UserId == userId)
+                .Where(ca => ca.UserId == userId).Include(appointment => appointment.User)
                 .ToListAsync();
 
-            var cancelledAppointmentsDto = cancelledAppointments
-                .GroupBy(a => a.AppointmentGroupId)
-                .Select(group => MapToCancelledAppointmentDto(group!, doctorsUsers, lang))
-                .ToList();
+            if (cancelledAppointments.Any())
+            {
+                var cancelledAppointmentsDto = cancelledAppointments
+                    .GroupBy(a => a.AppointmentGroupId)
+                    .Select(group => MapToCancelledAppointmentDto(group!, doctorsUsers, lang))
+                    .ToList();
 
-            result = result.Concat(cancelledAppointmentsDto).ToList();
+                result = result.Concat(cancelledAppointmentsDto).ToList();
+            }
         }
 
         if (showCompleted)
@@ -144,13 +147,15 @@ public class AppointmentRepository : IAppointmentRepository
                 .Where(ca => ca.UserId == userId).Include(completedAppointment => completedAppointment.User)
                 .ToListAsync();
 
+            if (completedAppointments.Any())
+            {
+                var completedAppointmentsDto = completedAppointments
+                    .GroupBy(a => a.AppointmentGroupId)
+                    .Select(group => MapToCompletedAppointmentDto(group!, doctorsUsers, lang))
+                    .ToList();
 
-            var completedAppointmentsDto = completedAppointments
-                .GroupBy(a => a.AppointmentGroupId)
-                .Select(group => MapToCompletedAppointmentDto(group!, doctorsUsers, lang))
-                .ToList();
-
-            result = result.Concat(completedAppointmentsDto).ToList();
+                result = result.Concat(completedAppointmentsDto).ToList();
+            }
         }
 
         return result.OrderByDescending(r => r.StartTime).ToList();
@@ -217,6 +222,8 @@ public class AppointmentRepository : IAppointmentRepository
                         .ToList()!
                 });
             })
+            .GroupBy(s => s.Id)
+            .Select(g => g.First())
             .ToList();
     }
 

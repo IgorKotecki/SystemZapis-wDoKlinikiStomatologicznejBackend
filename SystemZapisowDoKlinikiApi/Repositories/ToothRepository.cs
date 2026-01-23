@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SystemZapisowDoKlinikiApi.Context;
 using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
+using SystemZapisowDoKlinikiApi.Exceptions;
 using SystemZapisowDoKlinikiApi.Repositories.RepositoriesInterfaces;
 
 namespace SystemZapisowDoKlinikiApi.Repositories;
@@ -69,6 +70,24 @@ public class ToothRepository : IToothRepository
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
+            var appointment = await _context.Appointments
+                .Include(a => a.DoctorBlock)
+                .ThenInclude(db => db.TimeBlock)
+                .FirstOrDefaultAsync(a =>
+                    a.AppointmentGroupId == request.AppointmentGuid && a.UserId == request.UserId);
+
+            if (appointment == null)
+            {
+                throw new BusinessException("NO_APPOINTMENT_FOR_TOOTH_UPDATE",
+                    "No appointment found for the given user and appointment GUID.");
+            }
+
+            if (appointment.DoctorBlock.TimeBlock.TimeStart > DateTime.Now)
+            {
+                throw new BusinessException("APPOINTMENT_IN_FUTURE",
+                    "Cannot update tooth model for past appointments.");
+            }
+
             foreach (var tooth in request.Teeth)
             {
                 var toothEntity = await _context.Teeth
