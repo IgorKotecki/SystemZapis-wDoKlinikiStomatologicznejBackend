@@ -29,6 +29,15 @@ public class ServiceController : ControllerBase
 
         return Ok(services);
     }
+    
+    [HttpGet("service-name/{serviceId}")]
+    public async Task<IActionResult> GetServiceNameByIdAsync([FromRoute] int serviceId)
+    {
+        var serviceNameDto = await _serviceService.GetServiceNameDTOByIdAsync(serviceId);
+
+        _logger.LogInformation("Retrieved service name for service ID: {ServiceId}", serviceId);
+        return Ok(serviceNameDto);
+    }
 
     [HttpPost]
     [Route("service")]
@@ -60,6 +69,16 @@ public class ServiceController : ControllerBase
 
         _logger.LogInformation("Retrieved all services by categories for language: {Lang}", lang);
 
+        return Ok(services);
+    }
+    
+    [HttpGet("services-no-categories")]
+    public async Task<IActionResult> GetAllServicesNoCategorySplitsAsync([FromQuery] string lang)
+    {
+        var services = await _serviceService.GetAllServicesAsyncNoCategorySplits(lang); 
+        
+        _logger.LogInformation("Retrieved all services without category splits for language: {Lang}", lang);
+        
         return Ok(services);
     }
 

@@ -70,6 +70,20 @@ public class ServiceService : IServiceService
 
         return services;
     }
+    
+    public async Task<ICollection<ServiceDto>> GetAllServicesAsyncNoCategorySplits(string lang)
+    {
+        lang = EnsureValidLanguage(lang);
+
+        var services = await _serviceRepository.GetAllServicesAsyncNoCategorySplits(lang);
+
+        if (services.IsNullOrEmpty())
+        {
+            throw new KeyNotFoundException("No services found.");
+        }
+
+        return services;
+    }
 
     private string EnsureValidLanguage(string lang)
     {
@@ -79,6 +93,11 @@ public class ServiceService : IServiceService
     public async Task<Service?> GetServiceByIdAsync(int serviceId)
     {
         return await _serviceRepository.GetServiceByIdAsync(serviceId);
+    }
+
+    public async Task<ServiceNameDTO> GetServiceNameDTOByIdAsync(int serviceId)
+    {
+        return await _serviceRepository.GetServiceNameDTOByIdAsync(serviceId);
     }
 
     public async Task<ServiceEditDto?> GetServiceForEditAsync(int serviceId)

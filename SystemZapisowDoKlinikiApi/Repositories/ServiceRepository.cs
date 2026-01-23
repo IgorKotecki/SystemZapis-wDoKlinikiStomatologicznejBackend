@@ -43,6 +43,26 @@ public class ServiceRepository : IServiceRepository
             .FirstOrDefaultAsync(s => s.Id == serviceId);
     }
 
+    public async Task<ServiceNameDTO> GetServiceNameDTOByIdAsync(int serviceId)
+    {
+        return await _context.Services
+            .Where(s => s.Id == serviceId)
+            .Select(s => new ServiceNameDTO
+            {
+                Id = s.Id,
+                NamePL = s.ServicesTranslations
+                    .Where(t => t.LanguageCode == "pl")
+                    .Select(t => t.Name)
+                    .FirstOrDefault() ?? "",
+                NameEN = s.ServicesTranslations
+                    .Where(t => t.LanguageCode == "en")
+                    .Select(t => t.Name)
+                    .FirstOrDefault() ?? ""
+            })
+            .AsNoTracking()
+            .FirstOrDefaultAsync() ?? throw new ArgumentException("Service with given id does not exist");
+    }
+
     public async Task<ServiceEditDto?> GetServiceEditDtoByIdAsync(int serviceId)
     {
         return await _context.Services
@@ -190,6 +210,34 @@ public class ServiceRepository : IServiceRepository
             .ToDictionary(g => g.Key, g => (ICollection<ServiceDto>)g.ToList());
 
         return new AllServicesDto { ServicesByCategory = servicesByCategory };
+    }
+    
+    public async Task<ICollection<ServiceDto>> GetAllServicesAsyncNoCategorySplits(string lang)
+    {
+        var serviceDtos = await _context.Services
+            .Select(s => new ServiceDto
+            {
+                Id = s.Id,
+                LowPrice = s.LowPrice,
+                HighPrice = s.HighPrice,
+                MinTime = s.MinTime,
+                Name = s.ServicesTranslations
+                    .Where(st => st.LanguageCode == lang)
+                    .Select(st => st.Name)
+                    .FirstOrDefault(),
+                Description = s.ServicesTranslations
+                    .Where(st => st.LanguageCode == lang)
+                    .Select(st => st.Description)
+                    .FirstOrDefault(),
+                LanguageCode = lang,
+                Categories = s.ServiceCategories
+                    .Select(sc => lang == "pl" ? sc.NamePl : sc.NameEn)
+                    .ToList()
+            })
+            .OrderBy(s => s.Name)
+            .ToListAsync();
+        
+        return serviceDtos;
     }
 
     public async Task DeleteServiceAsync(int serviceId)
