@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.DTO.AdditionalInformationDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
@@ -21,6 +22,7 @@ public class AdditionalInformationController : ControllerBase
 
     [HttpPost("")]
     [Authorize(Roles = "Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> CreateAddInformationAsync([FromBody] AddInformationDto addInformationDto)
     {
         _logger.LogInformation("Creating additional information entry by doctor.");

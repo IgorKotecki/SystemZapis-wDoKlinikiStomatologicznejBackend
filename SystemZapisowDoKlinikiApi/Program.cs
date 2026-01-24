@@ -117,12 +117,18 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
+
+app.UseHttpsRedirection();
+
 app.UseCors("AllowLocalhost");
+
+app.UseRouting();
+
+app.UseMiddleware<ConcurrentRequestLimiterMiddleware>();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
@@ -130,8 +136,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.MapControllers();
+
 app.Run();
 
 public partial class Program
