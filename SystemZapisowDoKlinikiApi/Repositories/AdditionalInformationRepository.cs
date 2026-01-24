@@ -60,8 +60,19 @@ public class AdditionalInformationRepository : IAdditionalInformationRepository
 
     public async Task DeleteAddInformationByIdAsync(int id)
     {
-        var addInformation = await _context.AdditionalInformations.FindAsync(id);
-        if (addInformation != null) _context.AdditionalInformations.Remove(addInformation);
+        var addInformation = await _context.AdditionalInformations
+            .Include(ad => ad.Appointments)
+            .FirstOrDefaultAsync(ad => ad.Id == id);
+
+        if (addInformation == null)
+        {
+            throw new KeyNotFoundException($"Additional information with ID {id} not found.");
+        }
+
+        addInformation.Appointments.Clear();
+
+        _context.AdditionalInformations.Remove(addInformation);
+
         await _context.SaveChangesAsync();
     }
 }

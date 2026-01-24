@@ -243,6 +243,8 @@ public class AppointmentRepository : IAppointmentRepository
                         : item["BodyEn"]!.Value<string>())!
                 });
             })
+            .GroupBy(ad => ad.Id)
+            .Select(g => g.First())
             .ToList();
     }
 

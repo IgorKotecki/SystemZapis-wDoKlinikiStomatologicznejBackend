@@ -29,6 +29,11 @@ public class ToothService : IToothService
         return await _toothRepository.GetToothStatusesAsync(language);
     }
 
+    public Task CreateTeethModelForUserAsync(CreateToothModelDto request)
+    {
+        return _toothRepository.CreateTeethModelForUserAsync(request);
+    }
+
     private void ValidateLanguage(string language)
     {
         if (string.IsNullOrWhiteSpace(language))

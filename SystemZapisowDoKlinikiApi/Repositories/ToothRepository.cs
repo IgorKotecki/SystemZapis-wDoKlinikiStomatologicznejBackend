@@ -142,4 +142,34 @@ public class ToothRepository : IToothRepository
         };
         return statusesDto;
     }
+
+    public async Task CreateTeethModelForUserAsync(CreateToothModelDto request)
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId);
+            if (!userExists)
+                throw new ArgumentException("User not found", nameof(request.UserId));
+
+            var existingTeeth = await _context.Teeth
+                .Where(t => t.UserId == request.UserId)
+                .ToListAsync();
+
+            if (existingTeeth.Any())
+                throw new BusinessException("TEETH_MODEL_ALREADY_EXISTS",
+                    "Teeth model for the specified user already exists.");
+
+            await _context.Database.ExecuteSqlRawAsync("EXEC CreateDefaultTeethModelForUser @UserId = {0}",
+                request.UserId);
+
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+        catch (Exception e)
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
 }

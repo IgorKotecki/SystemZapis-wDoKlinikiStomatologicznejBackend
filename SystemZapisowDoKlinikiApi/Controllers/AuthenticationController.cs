@@ -8,8 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SystemZapisowDoKlinikiApi.Context;
 using SystemZapisowDoKlinikiApi.DTO.AuthDtos;
+using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 using SystemZapisowDoKlinikiApi.Models;
 using SystemZapisowDoKlinikiApi.Security;
+using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 using RegisterRequest = SystemZapisowDoKlinikiApi.DTO.AuthDtos.RegisterRequest;
 
 namespace SystemZapisowDoKlinikiApi.Controllers;
@@ -21,15 +23,17 @@ public class AuthenticationController : ControllerBase
     private readonly ClinicDbContext _context;
     private readonly IConfiguration _configuration;
     private readonly IEmailService _emailSender;
+    private readonly IToothService _toothService;
     private readonly ILogger<AuthenticationController> _logger;
 
     public AuthenticationController(ClinicDbContext context, IConfiguration configuration, IEmailService emailSender,
-        ILogger<AuthenticationController> logger)
+        ILogger<AuthenticationController> logger, IToothService toothService)
     {
         _context = context;
         _configuration = configuration;
         _emailSender = emailSender;
         _logger = logger;
+        _toothService = toothService;
     }
 
     [AllowAnonymous]
@@ -68,7 +72,10 @@ public class AuthenticationController : ControllerBase
 
                 var userId = us.Id;
 
-                await _context.Database.ExecuteSqlRawAsync("EXEC CreateDefaultTeethModelForUser @UserId = {0}", userId);
+                await _toothService.CreateTeethModelForUserAsync(new CreateToothModelDto()
+                {
+                    UserId = userId
+                });
 
                 return Ok();
             }

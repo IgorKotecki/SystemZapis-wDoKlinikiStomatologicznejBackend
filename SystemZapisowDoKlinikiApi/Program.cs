@@ -68,6 +68,7 @@ builder.Logging.AddOpenTelemetry(x =>
         a.Headers = builder.Configuration["Otlp:Headers"]!;
     });
 });
+builder.Logging.AddConsole();
 
 builder.Logging.AddFilter(
     "Microsoft.AspNetCore.Diagnostics.ExceptionHandlerMiddleware",

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
@@ -54,5 +55,17 @@ public class ToothController : ControllerBase
         _logger.LogInformation("Retrieved tooth statuses for language: {Lang}", lang);
 
         return Ok(statuses);
+    }
+
+    [HttpPost]
+    [Route("teeth-model")]
+    [Authorize(Roles = "Doctor")]
+    public async Task<IActionResult> CreateTeethModelForUserAsync([FromBody] CreateToothModelDto request)
+    {
+        await _toothService.CreateTeethModelForUserAsync(request);
+
+        _logger.LogInformation("Created tooth model for user with id: {UserId}", request.UserId);
+
+        return CreatedAtAction("GetToothModel", new { userId = request.UserId }, null);
     }
 }

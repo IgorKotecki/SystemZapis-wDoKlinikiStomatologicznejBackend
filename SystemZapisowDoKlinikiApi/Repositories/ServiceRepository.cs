@@ -104,7 +104,7 @@ public class ServiceRepository : IServiceRepository
 
     public async Task AddServiceAsync(AddServiceDto addServiceDto)
     {
-        var trasaction = await _context.Database.BeginTransactionAsync();
+        await using var trasaction = await _context.Database.BeginTransactionAsync();
 
         try
         {
@@ -211,7 +211,7 @@ public class ServiceRepository : IServiceRepository
 
         return new AllServicesDto { ServicesByCategory = servicesByCategory };
     }
-    
+
     public async Task<ICollection<ServiceDto>> GetAllServicesAsyncNoCategorySplits(string lang)
     {
         var serviceDtos = await _context.Services
@@ -236,7 +236,7 @@ public class ServiceRepository : IServiceRepository
             })
             .OrderBy(s => s.Name)
             .ToListAsync();
-        
+
         return serviceDtos;
     }
 
