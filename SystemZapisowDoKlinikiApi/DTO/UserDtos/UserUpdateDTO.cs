@@ -4,17 +4,19 @@ namespace SystemZapisowDoKlinikiApi.DTO.UserDtos;
 
 public class UserUpdateDto
 {
-    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "Imię zawiera niedozwolone znaki")]
+    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "NAME_INVALID_CHARACTERS")]
     [StringLength(50)]
     public string? Name { get; set; }
 
-    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "Nazwisko zawiera niedozwolone znaki")]
+    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "SURNAME_INVALID_CHARACTERS")]
     [StringLength(50)]
     public string? Surname { get; set; }
 
-    [Phone] public string? PhoneNumber { get; set; }
+    [Phone(ErrorMessage = "PHONE_NUMBER_INVALID_FORMAT")]
+    public string? PhoneNumber { get; set; }
 
-    [EmailAddress] public string? Email { get; set; }
+    [EmailAddress(ErrorMessage = "EMAIL_INVALID_FORMAT")]
+    public string? Email { get; set; }
 
     [Url] public string? PhotoUrl { get; set; }
 }

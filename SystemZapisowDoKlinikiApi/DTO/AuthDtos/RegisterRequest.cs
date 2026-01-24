@@ -4,25 +4,25 @@ namespace SystemZapisowDoKlinikiApi.DTO.AuthDtos;
 
 public class RegisterRequest
 {
-    [Required(ErrorMessage = "Imię jest wymagane")]
-    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "Imię zawiera niedozwolone znaki")]
+    [Required(ErrorMessage = "NAME_REQUIRED")]
+    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "NAME_INVALID_CHARACTERS")]
     [StringLength(50, MinimumLength = 2)]
     public string Name { get; set; } = null!;
 
-    [Required(ErrorMessage = "Nazwisko jest wymagane")]
-    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "Nazwisko zawiera niedozwolone znaki")]
+    [Required(ErrorMessage = "SURNAME_REQUIRED")]
+    [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "SURNAME_INVALID_CHARACTERS")]
     [StringLength(50, MinimumLength = 2)]
     public string Surname { get; set; } = null!;
 
-    [Required(ErrorMessage = "Email jest wymagany")]
-    [EmailAddress(ErrorMessage = "Nieprawidłowy format adresu email")]
+    [Required(ErrorMessage = "EMAIL_REQUIRED")]
+    [EmailAddress(ErrorMessage = "EMAIL_INVALID_FORMAT")]
     public string Email { get; set; } = null!;
 
-    [Required(ErrorMessage = "Numer telefonu jest wymagany")]
-    [Phone(ErrorMessage = "Nieprawidłowy format numeru telefonu")]
+    [Required(ErrorMessage = "PHONE_NUMBER_REQUIRED")]
+    [Phone(ErrorMessage = "PHONE_NUMBER_INVALID_FORMAT")]
     public string PhoneNumber { get; set; } = null!;
 
-    [Required(ErrorMessage = "Hasło jest wymagane")]
-    [StringLength(100, MinimumLength = 8, ErrorMessage = "Hasło musi mieć minimum 8 znaków")]
+    [Required(ErrorMessage = "PASSWORD_REQUIRED")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "PASSWORD_LENGTH_INVALID")]
     public string Password { get; set; } = null!;
 }
