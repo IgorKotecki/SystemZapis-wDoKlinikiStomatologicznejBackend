@@ -54,6 +54,10 @@ public class UserService : IUserService
 
         if (user == null)
             return null;
+        
+        var checkExistingEmailUser = await _userRepository.GetUserByEmailAsync(dto.Email);
+        if (checkExistingEmailUser != null && checkExistingEmailUser.Id != id)
+            throw new ArgumentException("Email is already in use by another user.");
 
         MapUserUpdateDtoToUser(dto, user);
 
