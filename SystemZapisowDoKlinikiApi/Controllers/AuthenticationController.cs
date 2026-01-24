@@ -38,7 +38,7 @@ public class AuthenticationController : ControllerBase
     {
         if (ModelState.IsValid == false)
         {
-            return BadRequest();
+            return BadRequest(ModelState);
         }
 
         var hashedPasswordAndSalt = SecurityHelper.GetHashedPasswordAndSalt(model.Password);
