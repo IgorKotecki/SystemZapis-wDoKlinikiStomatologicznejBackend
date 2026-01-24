@@ -34,6 +34,13 @@ public class UserRepository : IUserRepository
         //TODO pamietac ze podzszywac sie moze ktos i trzba potwierzdzic mailowo 
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
+    
+    public async Task<bool> EmailExistsAsync(string email, int excludeId)
+    {
+        return await _context.Users
+            .AsNoTracking() 
+            .AnyAsync(u => u.Email.ToLower() == email.ToLower() && u.Id != excludeId);
+    }
 
     public async Task<UserDto?> GetUserByIdAsync(int id)
     {

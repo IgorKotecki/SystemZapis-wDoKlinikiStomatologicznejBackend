@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemZapisowDoKlinikiApi.Context;
-using SystemZapisowDoKlinikiApi.Models;
 
 #nullable disable
 
@@ -19,7 +18,7 @@ namespace SystemZapisowDoKlinikiApi.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .UseCollation("Polish_CI_AS")
-                .HasAnnotation("ProductVersion", "9.0.6")
+                .HasAnnotation("ProductVersion", "8.0.23")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -388,6 +387,12 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.Property<decimal?>("HighPrice")
                         .HasColumnType("decimal(10, 2)")
                         .HasColumnName("high_price");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
 
                     b.Property<decimal?>("LowPrice")
                         .HasColumnType("decimal(10, 2)")

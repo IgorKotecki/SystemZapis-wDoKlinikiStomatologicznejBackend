@@ -317,7 +317,7 @@ public partial class ClinicDbContext : DbContext
         modelBuilder.Entity<Service>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Services_pk");
-
+            
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.HighPrice)
                 .HasColumnType("decimal(10, 2)")
@@ -330,7 +330,7 @@ public partial class ClinicDbContext : DbContext
                 .HasMaxLength(255)
                 .HasColumnName("photo_url")
                 .IsRequired(false);
-
+            entity.Property(e => e.IsActive).HasColumnName("is_active").HasDefaultValue(true);
             entity.HasMany(e => e.ServiceCategories).WithMany(s => s.Services)
                 .UsingEntity<Dictionary<string, object>>(
                     "ServiceCategoryAssignment",
