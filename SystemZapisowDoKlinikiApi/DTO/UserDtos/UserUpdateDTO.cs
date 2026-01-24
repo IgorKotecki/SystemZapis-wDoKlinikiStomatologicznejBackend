@@ -5,11 +5,11 @@ namespace SystemZapisowDoKlinikiApi.DTO.UserDtos;
 public class UserUpdateDto
 {
     [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "NAME_INVALID_CHARACTERS")]
-    [StringLength(50)]
+    [StringLength(50, ErrorMessage = "NAME_LENGTH_INVALID")]
     public string? Name { get; set; }
 
     [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "SURNAME_INVALID_CHARACTERS")]
-    [StringLength(50)]
+    [StringLength(50, ErrorMessage = "SURNAME_LENGTH_INVALID")]
     public string? Surname { get; set; }
 
     [Phone(ErrorMessage = "PHONE_NUMBER_INVALID_FORMAT")]

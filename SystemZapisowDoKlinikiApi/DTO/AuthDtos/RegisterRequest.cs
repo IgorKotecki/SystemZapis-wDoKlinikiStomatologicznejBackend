@@ -6,12 +6,12 @@ public class RegisterRequest
 {
     [Required(ErrorMessage = "NAME_REQUIRED")]
     [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "NAME_INVALID_CHARACTERS")]
-    [StringLength(50, MinimumLength = 2)]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "NAME_LENGTH_INVALID")]
     public string Name { get; set; } = null!;
 
     [Required(ErrorMessage = "SURNAME_REQUIRED")]
     [RegularExpression(@"^[\p{L}\s-]+$", ErrorMessage = "SURNAME_INVALID_CHARACTERS")]
-    [StringLength(50, MinimumLength = 2)]
+    [StringLength(50, MinimumLength = 2, ErrorMessage = "SURNAME_LENGTH_INVALID")]
     public string Surname { get; set; } = null!;
 
     [Required(ErrorMessage = "EMAIL_REQUIRED")]
