@@ -48,15 +48,40 @@ public class UserService : IUserService
         return _userRepository.GetUserByIdAsync(id);
     }
 
-    public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto)
+    /*public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto)
     {
         var user = await _userRepository.GetByIdAsync(id);
 
         if (user == null)
             return null;
+        
+        var checkExistingEmailUser = await _userRepository.GetUserByEmailAsync(dto.Email);
+        if (checkExistingEmailUser != null && checkExistingEmailUser.Id != id)
+            throw new ArgumentException("Email is already in use by another user.");
 
         MapUserUpdateDtoToUser(dto, user);
 
+        await _userRepository.UpdateUserAsync(user);
+
+        return MapUserToUserDto(user);
+    }*/
+    
+    public async Task<UserDto?> UpdateUserAsync(int id, UserUpdateDto dto)
+    {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null) return null;
+        
+        var normalizedDtoEmail = dto.Email.Trim().ToLower();
+        var normalizedUserEmail = user.Email.Trim().ToLower();
+
+        if (normalizedUserEmail != normalizedDtoEmail)
+        {
+            bool isEmailTaken = await _userRepository.EmailExistsAsync(normalizedDtoEmail, id);
+            if (isEmailTaken)
+                throw new InvalidOperationException("EMAIL_TAKEN");
+        }
+        
+        MapUserUpdateDtoToUser(dto, user);
         await _userRepository.UpdateUserAsync(user);
 
         return MapUserToUserDto(user);

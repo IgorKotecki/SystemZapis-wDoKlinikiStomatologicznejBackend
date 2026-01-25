@@ -12,6 +12,7 @@ public partial class Service
 
     public string? PhotoUrl { get; set; }
 
+    public bool IsActive { get; set; }
     public virtual ICollection<ServiceCategory> ServiceCategories { get; set; } = new List<ServiceCategory>();
 
     public virtual ICollection<ServiceDependency> ServiceDependencyRequiredServices { get; set; } =

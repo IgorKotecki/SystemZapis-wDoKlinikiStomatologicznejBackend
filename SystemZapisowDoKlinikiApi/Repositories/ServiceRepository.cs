@@ -137,9 +137,11 @@ public class ServiceRepository : IServiceRepository
                 HighPrice = addServiceDto.HighPrice,
                 MinTime = addServiceDto.MinTime,
                 Roles = roles,
+                IsActive = true,
                 ServiceCategories = await _context.ServiceCategory
                     .Where(sc => addServiceDto.ServiceCategoriesId.Contains(sc.Id))
                     .ToListAsync()
+                
             };
 
             await _context.Services.AddAsync(newService);
@@ -181,7 +183,7 @@ public class ServiceRepository : IServiceRepository
 
     public async Task<AllServicesDto> GetAllServicesAsync(string lang)
     {
-        var serviceDtos = await _context.Services
+        var serviceDtos = await _context.Services.Where(s=> s.IsActive)
             .Select(s => new ServiceDto
             {
                 Id = s.Id,
@@ -214,7 +216,7 @@ public class ServiceRepository : IServiceRepository
 
     public async Task<ICollection<ServiceDto>> GetAllServicesAsyncNoCategorySplits(string lang)
     {
-        var serviceDtos = await _context.Services
+        var serviceDtos = await _context.Services.Where(s => s.IsActive)
             .Select(s => new ServiceDto
             {
                 Id = s.Id,
@@ -242,28 +244,16 @@ public class ServiceRepository : IServiceRepository
 
     public async Task DeleteServiceAsync(int serviceId)
     {
-        var transaction = await _context.Database.BeginTransactionAsync();
-        try
-        {
-            var serviceToDelete = await _context.Services.FirstOrDefaultAsync(s => s.Id == serviceId);
-            if (serviceToDelete == null)
-            {
-                throw new ArgumentException("Service with given id does not exist");
-            }
-
-            await _context.ServiceDependencies.Where(s => s.ServiceId == serviceId || s.RequiredServiceId == serviceId)
-                .ForEachAsync(sd => _context.ServiceDependencies.Remove(sd));
-
-            _context.Services.Remove(serviceToDelete);
-            await _context.SaveChangesAsync();
-
-            await transaction.CommitAsync();
+        var serviceToDelete = await _context.Services.FirstOrDefaultAsync(s => s.Id == serviceId);
+        if (serviceToDelete == null)
+        { 
+            throw new ArgumentException("Service with given id does not exist");
         }
-        catch (Exception e)
-        {
-            await transaction.RollbackAsync();
-            throw new Exception("Failed to delete service", e);
-        }
+
+        serviceToDelete.IsActive = false;
+        _context.Services.Update(serviceToDelete);
+            
+        await _context.SaveChangesAsync();
     }
 
     public async Task EditServiceAsync(int serviceId, ServiceEditDto serviceEditDto)
@@ -323,8 +313,7 @@ public class ServiceRepository : IServiceRepository
             translation.Description = description;
         }
     }
-
-
+    
     public async Task<List<ServiceCategory>> GetAllServiceCategories()
     {
         return await _context.ServiceCategory.AsNoTracking().ToListAsync();
@@ -332,7 +321,7 @@ public class ServiceRepository : IServiceRepository
 
     public async Task<ICollection<ServiceDto>> GetAllServicesForReceptionistAsync(string lang)
     {
-        return await _context.Services
+        return await _context.Services.Where(s=> s.IsActive)
             .Select(s => new ServiceDto()
             {
                 Id = s.Id,

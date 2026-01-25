@@ -12,4 +12,5 @@ public interface IUserRepository
     public Task UpdateUserAsync(User user);
     Task<object> GetAllUsersAsync(int page, int pageSize, string? searchTerm);
     public Task DeleteUserAsync(int userId);
+    public Task<bool> EmailExistsAsync(string email, int excludeId);
 }

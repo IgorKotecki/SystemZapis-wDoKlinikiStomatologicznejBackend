@@ -40,7 +40,7 @@ public class UserController : ControllerBase
 
         var updated = await _userService.UpdateUserAsync(id, dto);
 
-        if (updated == null)
+        if (updated == null)    
             return NotFound("User not found");
 
         _logger.LogInformation("Updated user with id: {UserId}", id);
