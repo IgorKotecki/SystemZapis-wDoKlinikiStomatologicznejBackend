@@ -874,7 +874,7 @@ namespace SystemZapisowDoKlinikiApi.Migrations
                     b.HasOne("SystemZapisowDoKlinikiApi.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("AppointmentStatus");

@@ -1,6 +1,7 @@
 ﻿//TODO: uncomment for production
-// using System.Net;
-// using System.Net.Mail;
+
+using System.Net;
+using System.Net.Mail;
 
 namespace SystemZapisowDoKlinikiApi.Security;
 
@@ -18,7 +19,7 @@ public class EmailSender : IEmailService
     public async Task SendEmailAsync(string? to, string subject, string body)
     {
         //TODO: uncomment for production
-        /*var mail = _configuration["EmailSettings:Mail"]!;
+        var mail = _configuration["EmailSettings:Mail"]!;
         var password = _configuration["EmailSettings:Password"]!;
         var smtpHost = _configuration["EmailSettings:Host"]!;
         var smtpPort = int.Parse(_configuration["EmailSettings:Port"] ?? "587");
@@ -51,6 +52,6 @@ public class EmailSender : IEmailService
             throw;
         }
 
-        return;*/
+        return;
     }
 }

@@ -184,7 +184,7 @@ public partial class ClinicDbContext : DbContext
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(e => e.AppointmentStatus)
                 .WithMany()
@@ -317,7 +317,7 @@ public partial class ClinicDbContext : DbContext
         modelBuilder.Entity<Service>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("Services_pk");
-            
+
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.HighPrice)
                 .HasColumnType("decimal(10, 2)")

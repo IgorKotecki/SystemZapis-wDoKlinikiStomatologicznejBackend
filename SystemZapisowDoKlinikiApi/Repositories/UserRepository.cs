@@ -34,11 +34,11 @@ public class UserRepository : IUserRepository
         //TODO pamietac ze podzszywac sie moze ktos i trzba potwierzdzic mailowo 
         return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
     }
-    
+
     public async Task<bool> EmailExistsAsync(string email, int excludeId)
     {
         return await _context.Users
-            .AsNoTracking() 
+            .AsNoTracking()
             .AnyAsync(u => u.Email.ToLower() == email.ToLower() && u.Id != excludeId);
     }
 
@@ -112,20 +112,15 @@ public class UserRepository : IUserRepository
 
     public async Task DeleteUserAsync(int userId)
     {
-        try
+        var user = await _context.Users.FindAsync(userId);
+        if (user == null)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-            {
-                throw new KeyNotFoundException("User not found");
-            }
+            throw new KeyNotFoundException("User not found");
+        }
 
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-        }
-        catch (Exception e)
-        {
-            throw;
-        }
+        _context.CompletedAppointments.RemoveRange(
+            _context.CompletedAppointments.Where(ca => ca.UserId == userId));
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
     }
 }

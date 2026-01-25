@@ -1,6 +1,7 @@
 ﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.DTO.DaySchemeDtos;
 using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
@@ -26,6 +27,7 @@ public class DoctorController : ControllerBase
     [HttpPut]
     [Route("week-scheme")]
     [Authorize(Roles = "Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> UpdateDoctorDaySchemeAsync([FromBody] WeekSchemeDto weekSchemeDto)
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
@@ -62,6 +64,7 @@ public class DoctorController : ControllerBase
     [HttpPost]
     [Route("doctor")]
     [Authorize(Roles = "Admin")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> AddDoctorAsync([FromBody] AddDoctorDto addDoctorDto)
     {
         await _doctorService.AddDoctorAsync(addDoctorDto);
@@ -74,6 +77,7 @@ public class DoctorController : ControllerBase
     [HttpDelete]
     [Route("doctor/{doctorId}")]
     [Authorize(Roles = "Admin")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> DeleteDoctorAsync(int doctorId)
     {
         await _doctorService.DeleteDoctorAsync(doctorId);

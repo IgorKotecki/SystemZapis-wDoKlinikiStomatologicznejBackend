@@ -2,6 +2,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.DTO;
 using SystemZapisowDoKlinikiApi.DTO.TimeBlocksDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
@@ -49,6 +50,7 @@ public class TimeBlocksController : ControllerBase
 
     [HttpDelete("working-hours")]
     [Authorize(Roles = "Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> DeleteWorkingHoursAsync([FromBody] WorkingHoursDto workingHoursDto)
     {
         var doctorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value
@@ -65,6 +67,7 @@ public class TimeBlocksController : ControllerBase
 
     [HttpPost("working-hours")]
     [Authorize(Roles = "Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> AddWorkingHoursAsync([FromBody] WorkingHoursDto workingHoursDto)
     {
         var doctorId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value

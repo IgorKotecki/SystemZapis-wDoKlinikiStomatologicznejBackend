@@ -56,6 +56,7 @@ public class AdditionalInformationController : ControllerBase
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> DeleteAddInformationByIdAsync([FromRoute] int id)
     {
         _logger.LogInformation("Deleting additional information entry with id: {Id}", id);

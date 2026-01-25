@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.DTO.ServiceDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
@@ -29,7 +30,7 @@ public class ServiceController : ControllerBase
 
         return Ok(services);
     }
-    
+
     [HttpGet("service-name/{serviceId}")]
     public async Task<IActionResult> GetServiceNameByIdAsync([FromRoute] int serviceId)
     {
@@ -42,6 +43,7 @@ public class ServiceController : ControllerBase
     [HttpPost]
     [Route("service")]
     [Authorize(Roles = "Doctor,Receptionist,Admin")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> AddServiceAsync([FromBody] AddServiceDto addServiceDto)
     {
         await _serviceService.AddServiceAsync(addServiceDto);
@@ -71,20 +73,21 @@ public class ServiceController : ControllerBase
 
         return Ok(services);
     }
-    
+
     [HttpGet("services-no-categories")]
     public async Task<IActionResult> GetAllServicesNoCategorySplitsAsync([FromQuery] string lang)
     {
-        var services = await _serviceService.GetAllServicesAsyncNoCategorySplits(lang); 
-        
+        var services = await _serviceService.GetAllServicesAsyncNoCategorySplits(lang);
+
         _logger.LogInformation("Retrieved all services without category splits for language: {Lang}", lang);
-        
+
         return Ok(services);
     }
 
     [HttpDelete]
     [Route("service/{serviceId}")]
     [Authorize(Roles = "Admin,Receptionist,Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> DeleteServiceAsync([FromRoute] int serviceId)
     {
         await _serviceService.DeleteServiceAsync(serviceId);
@@ -96,6 +99,7 @@ public class ServiceController : ControllerBase
 
     [HttpPut("editService/{serviceId}")]
     [Authorize(Roles = "Admin,Receptionist,Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> EditServiceAsync([FromRoute] int serviceId,
         [FromBody] ServiceEditDto serviceEditDto)
     {
@@ -146,6 +150,7 @@ public class ServiceController : ControllerBase
     [HttpPost]
     [Route("service/add")]
     [Authorize(Roles = "Doctor,Receptionist,Admin")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> AddServiceForTestAsync([FromBody] AddServiceDto addServiceDto)
     {
         await _serviceService.AddServiceAsync(addServiceDto);

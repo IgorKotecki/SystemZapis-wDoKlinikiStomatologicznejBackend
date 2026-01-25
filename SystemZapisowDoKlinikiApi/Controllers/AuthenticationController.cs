@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.Context;
 using SystemZapisowDoKlinikiApi.DTO.AuthDtos;
 using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
@@ -38,6 +39,7 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("register")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> RegisterUserAsync(RegisterRequest model)
     {
         if (ModelState.IsValid == false)
@@ -110,6 +112,7 @@ public class AuthenticationController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> LoginUserAsync(LoginRequest model)
     {
         var user = await _context.Users.Include(user => user.Roles).FirstOrDefaultAsync(u => u.Email == model.Email);

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.DTO.ToothDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
@@ -60,6 +61,7 @@ public class ToothController : ControllerBase
     [HttpPost]
     [Route("teeth-model")]
     [Authorize(Roles = "Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> CreateTeethModelForUserAsync([FromBody] CreateToothModelDto request)
     {
         await _toothService.CreateTeethModelForUserAsync(request);

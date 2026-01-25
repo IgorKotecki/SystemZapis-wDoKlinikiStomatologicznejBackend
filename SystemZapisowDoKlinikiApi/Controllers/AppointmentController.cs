@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.DTO.AppointmentDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
@@ -20,6 +21,7 @@ public class AppointmentController : ControllerBase
     }
 
     [HttpPost("guest/appointment")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> BookGuestAppointmentAsync([FromBody] AppointmentRequest appointmentRequest)
     {
         await _appointmentService.CreateAppointmentGuestAsync(appointmentRequest);
@@ -66,6 +68,7 @@ public class AppointmentController : ControllerBase
 
     [HttpPost("registered/appointment")]
     [Authorize(Roles = "Registered_user")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> BookAppointmentForRegisteredUserAsync(
         [FromBody] BookAppointmentRequestDto bookAppointmentRequestDto)
     {
@@ -87,6 +90,7 @@ public class AppointmentController : ControllerBase
 
     [HttpPost("receptionist/appointment")]
     [Authorize(Roles = "Receptionist,Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> BookAppointmentForRegisteredUserByReceptionistAsync(
         [FromBody] BookAppointmentRequestWithUserIdDto bookAppointmentRequestByReceptionistDto)
     {
@@ -148,6 +152,7 @@ public class AppointmentController : ControllerBase
 
     [HttpPut("doctor/additional-information")]
     [Authorize(Roles = "Doctor")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> AddInfoToAppointmentAsync(
         [FromBody] AddInfoToAppointmentDto addInfoToAppointmentDto)
     {
@@ -159,6 +164,7 @@ public class AppointmentController : ControllerBase
 
     [HttpPut("appointment-status")]
     [Authorize(Roles = "Doctor,Admin,Receptionist")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> UpdateAppointmentStatusAsync(
         [FromBody] UpdateAppointmentStatusDto updateAppointmentStatusDto)
     {
@@ -170,6 +176,7 @@ public class AppointmentController : ControllerBase
 
     [HttpPut("cancel-appointment")]
     [Authorize(Roles = "Registered_user,Doctor,Admin,Receptionist")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> CancelAppointmentAsync(
         [FromBody] CancellationDto cancellationDto)
     {
@@ -181,6 +188,7 @@ public class AppointmentController : ControllerBase
 
     [HttpPut("complete-appointment")]
     [Authorize(Roles = "Doctor,Admin,Receptionist")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> CompleteAppointmentAsync(
         [FromBody] CompletionDto completionDto)
     {

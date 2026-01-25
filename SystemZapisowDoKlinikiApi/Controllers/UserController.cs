@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SystemZapisowDoKlinikiApi.Attributes;
 using SystemZapisowDoKlinikiApi.DTO.UserDtos;
 using SystemZapisowDoKlinikiApi.Services.ServiceInterfaces;
 
@@ -33,6 +34,7 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("edit/{id}")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UserUpdateDto dto)
     {
         if (ModelState.IsValid == false)
@@ -40,7 +42,7 @@ public class UserController : ControllerBase
 
         var updated = await _userService.UpdateUserAsync(id, dto);
 
-        if (updated == null)    
+        if (updated == null)
             return NotFound("User not found");
 
         _logger.LogInformation("Updated user with id: {UserId}", id);
@@ -61,6 +63,7 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("delete/{userId}")]
+    [ConcurrentRequestLimit]
     public async Task<IActionResult> DeleteUser(int userId)
     {
         await _userService.DeleteUserAsync(userId);
