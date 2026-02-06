@@ -110,12 +110,22 @@ public class AppointmentService : IAppointmentService
         BookAppointmentRequestDto bookAppointmentRequestDto)
     {
         ValidateBookAppointmentRequest(bookAppointmentRequestDto);
+        ValidateAppointemntDuration(bookAppointmentRequestDto.Duration);
 
         var user = await GetRegisteredUserAsync(userId);
 
         await _appointmentRepository.BookAppointmentForRegisteredUserAsync(userId, bookAppointmentRequestDto);
 
         await SendAppointmentConfirmationEmailAsync(user, bookAppointmentRequestDto.StartTime);
+    }
+
+    private void ValidateAppointemntDuration(int duration)
+    {
+        if (duration <= 0)
+        {
+            throw new BusinessException("INVALID_APPOINTMENT_DURATION",
+                "Appointment duration must be a positive integer.");
+        }
     }
 
     private static void ValidateBookAppointmentRequest(BookAppointmentRequestDto bookAppointmentRequestDto)
